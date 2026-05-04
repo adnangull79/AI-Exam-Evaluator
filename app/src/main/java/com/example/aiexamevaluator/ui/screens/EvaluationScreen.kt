@@ -1,5 +1,6 @@
 package com.example.aiexamevaluator.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,9 +18,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import coil.compose.AsyncImage
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SAFE clickable helper — NO ripple, NO indication.
@@ -34,6 +39,9 @@ private fun Modifier.safeClickable(onClick: () -> Unit): Modifier =
         onClick = onClick
     )
 
+private fun appendUrisIfWithinLimit(current: List<Uri>, newUris: List<Uri>, max: Int): List<Uri> =
+    if (current.size + newUris.size <= max) current + newUris else current
+
 // ─────────────────────────────────────────────────────────────────────────────
 // EvaluationScreen
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,8 +54,32 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
     var studentName   by remember { mutableStateOf("") }
     var rollNumber    by remember { mutableStateOf("") }
     var totalMarks    by remember { mutableStateOf("") }
-    var questionImages by remember { mutableStateOf(listOf<Int>()) }
-    var answerImages   by remember { mutableStateOf(listOf<Int>()) }
+    var questionImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var answerImages   by remember { mutableStateOf<List<Uri>>(emptyList()) }
+
+    val mcqImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            answerImages = appendUrisIfWithinLimit(answerImages, uris, 10)
+        }
+    }
+
+    val questionImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            questionImages = appendUrisIfWithinLimit(questionImages, uris, 2)
+        }
+    }
+
+    val answerImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            answerImages = appendUrisIfWithinLimit(answerImages, uris, 10)
+        }
+    }
 
     Scaffold(
         topBar          = { EvaluationTopBar(onBackClick) },
@@ -69,10 +101,10 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
             if (isMcqSelected) {
                 UploadSectionWithPreview(
                     title    = "MCQ Answer Sheet",
-                    subtitle = "Upload 1 MCQ sheet (max 1)",
+                    subtitle = "Upload MCQ sheets (max 10 images)",
                     images   = answerImages,
-                    max      = 1,
-                    onAdd    = { if (answerImages.size < 1) answerImages = answerImages + (answerImages.size + 1) },
+                    max      = 10,
+                    onAdd    = { mcqImagePickerLauncher.launch("image/*") },
                     onRemove = { answerImages = answerImages - it }
                 )
             } else {
@@ -81,7 +113,7 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
                     subtitle = "Upload max 2 images",
                     images   = questionImages,
                     max      = 2,
-                    onAdd    = { if (questionImages.size < 2) questionImages = questionImages + (questionImages.size + 1) },
+                    onAdd    = { questionImagePickerLauncher.launch("image/*") },
                     onRemove = { questionImages = questionImages - it }
                 )
 
@@ -92,7 +124,7 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
                     subtitle = "Upload max 10 images",
                     images   = answerImages,
                     max      = 10,
-                    onAdd    = { if (answerImages.size < 10) answerImages = answerImages + (answerImages.size + 1) },
+                    onAdd    = { answerImagePickerLauncher.launch("image/*") },
                     onRemove = { answerImages = answerImages - it }
                 )
             }
@@ -108,7 +140,14 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
                 onValueChange = { studentName = it },
                 label         = { Text("Student Name") },
                 modifier      = Modifier.fillMaxWidth(),
-                singleLine    = true
+                singleLine    = true,
+                colors        = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = primaryGreen,
+                    unfocusedTextColor = primaryGreen,
+                    cursorColor = primaryGreen,
+                    focusedBorderColor = primaryGreen,
+                    unfocusedBorderColor = Color.Gray
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -118,7 +157,14 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
                 onValueChange = { rollNumber = it },
                 label         = { Text("Roll Number") },
                 modifier      = Modifier.fillMaxWidth(),
-                singleLine    = true
+                singleLine    = true,
+                colors        = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = primaryGreen,
+                    unfocusedTextColor = primaryGreen,
+                    cursorColor = primaryGreen,
+                    focusedBorderColor = primaryGreen,
+                    unfocusedBorderColor = Color.Gray
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -128,7 +174,14 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
                 onValueChange = { totalMarks = it },
                 label         = { Text("Total Marks") },
                 modifier      = Modifier.fillMaxWidth(),
-                singleLine    = true
+                singleLine    = true,
+                colors        = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = primaryGreen,
+                    unfocusedTextColor = primaryGreen,
+                    cursorColor = primaryGreen,
+                    focusedBorderColor = primaryGreen,
+                    unfocusedBorderColor = Color.Gray
+                )
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -154,10 +207,10 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
 fun UploadSectionWithPreview(
     title    : String,
     subtitle : String,
-    images   : List<Int>,
+    images   : List<Uri>,
     max      : Int,
     onAdd    : () -> Unit,
-    onRemove : (Int) -> Unit
+    onRemove : (Uri) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -213,12 +266,11 @@ fun UploadSectionWithPreview(
                                     .background(Color(0xFFF0F0F0), RoundedCornerShape(8.dp))
                                     .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
                             ) {
-                                // Image number label
-                                Text(
-                                    text     = "#$item",
-                                    modifier = Modifier.align(Alignment.Center),
-                                    fontSize = 12.sp,
-                                    color    = Color(0xFF616161)
+                                AsyncImage(
+                                    model = item,
+                                    contentDescription = "Selected image",
+                                    modifier = Modifier.matchParentSize(),
+                                    contentScale = ContentScale.Crop
                                 )
 
                                 // ── SAFE remove button — uses safeClickable ──
