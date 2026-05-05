@@ -26,6 +26,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import coil.compose.AsyncImage
 
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.aiexamevaluator.viewmodel.EvaluationViewModel
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SAFE clickable helper — NO ripple, NO indication.
 // This is the ONLY clickable pattern used in this file to avoid the
@@ -49,6 +54,9 @@ private fun appendUrisIfWithinLimit(current: List<Uri>, newUris: List<Uri>, max:
 fun EvaluationScreen(onBackClick: () -> Unit = {}) {
 
     val primaryGreen = Color(0xFF1B5E3C)
+    val viewModel: EvaluationViewModel = viewModel()
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     var isMcqSelected by remember { mutableStateOf(true) }
     var studentName   by remember { mutableStateOf("") }
@@ -56,6 +64,31 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
     var totalMarks    by remember { mutableStateOf("") }
     var questionImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var answerImages   by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var showResult by remember { mutableStateOf(false) }
+    var resultStudentName by remember { mutableStateOf("") }
+    var resultRollNumber by remember { mutableStateOf("") }
+    var resultTotalMarks by remember { mutableStateOf(0) }
+    var resultData by remember { mutableStateOf<com.example.aiexamevaluator.data.model.EvaluationResponse?>(null) }
+
+    LaunchedEffect(uiState.result) {
+        val result = uiState.result
+        if (result != null) {
+            resultStudentName = uiState.studentName
+            resultRollNumber = uiState.rollNumber
+            resultTotalMarks = uiState.totalMarks
+            resultData = result
+            showResult = true
+            viewModel.clearResult()
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        val error = uiState.error
+        if (error != null) {
+            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+            viewModel.clearError()
+        }
+    }
 
     val mcqImagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -81,18 +114,34 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
         }
     }
 
-    Scaffold(
-        topBar          = { EvaluationTopBar(onBackClick) },
-        containerColor  = Color(0xFFF5F7F6)
-    ) { padding ->
+    if (showResult && resultData != null) {
+        ResultScreen(
+            studentName = resultStudentName,
+            rollNumber = resultRollNumber,
+            totalMarks = resultTotalMarks,
+            result = resultData!!,
+            onEvaluateAnother = {
+                showResult = false
+                resultData = null
+            }
+        )
+    } else {
+        Scaffold(
+            topBar          = { EvaluationTopBar(onBackClick) },
+            containerColor  = Color(0xFFF5F7F6)
+        ) { padding ->
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                ) {
 
             EvaluationTabs(primaryGreen, isMcqSelected) { isMcqSelected = it }
 
@@ -186,15 +235,38 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Button(
-                onClick  = { /* TODO: trigger evaluation */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape  = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)
-            ) {
-                Text("Evaluate", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Button(
+                        onClick  = {
+                            viewModel.evaluateExam(
+                                questionImages = if (isMcqSelected) emptyList() else questionImages,
+                                answerImages = answerImages,
+                                name = studentName,
+                                roll = rollNumber,
+                                totalMarks = totalMarks.toIntOrNull() ?: 0,
+                                isMcq = isMcqSelected
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape  = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
+                        enabled = !uiState.isLoading
+                    ) {
+                        Text("Evaluate", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = primaryGreen)
+                    }
+                }
             }
         }
     }
