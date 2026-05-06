@@ -25,10 +25,10 @@ import androidx.compose.ui.unit.sp
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import coil.compose.AsyncImage
-
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.aiexamevaluator.viewmodel.EvaluationViewModelFactory
 import com.example.aiexamevaluator.viewmodel.EvaluationViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -51,12 +51,13 @@ private fun appendUrisIfWithinLimit(current: List<Uri>, newUris: List<Uri>, max:
 // EvaluationScreen
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-fun EvaluationScreen(onBackClick: () -> Unit = {}) {
+fun EvaluationScreen(onBackClick: () -> Unit = {},viewModel: EvaluationViewModel) {
 
     val primaryGreen = Color(0xFF1B5E3C)
-    val viewModel: EvaluationViewModel = viewModel()
+    val context = LocalContext.current.applicationContext
+    val viewModel: EvaluationViewModel = viewModel(factory = EvaluationViewModelFactory(context))
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
+    val toastContext = LocalContext.current
 
     var isMcqSelected by remember { mutableStateOf(true) }
     var studentName   by remember { mutableStateOf("") }
@@ -85,7 +86,7 @@ fun EvaluationScreen(onBackClick: () -> Unit = {}) {
     LaunchedEffect(uiState.error) {
         val error = uiState.error
         if (error != null) {
-            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+            Toast.makeText(toastContext, error, Toast.LENGTH_SHORT).show()
             viewModel.clearError()
         }
     }

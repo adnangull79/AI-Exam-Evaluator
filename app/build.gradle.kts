@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -67,6 +68,14 @@ dependencies {
 
     // ✅ JSON parsing (Gemini response)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // ✅ Room database
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    // ✅ JSON serializer for history storage
+    implementation("com.google.code.gson:gson:2.11.0")
 
     // ✅ Image loading (for previews)
     implementation("io.coil-kt:coil-compose:2.6.0")

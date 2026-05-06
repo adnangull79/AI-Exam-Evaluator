@@ -4,12 +4,17 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.aiexamevaluator.data.local.EvaluationHistoryEntity
 import com.example.aiexamevaluator.data.model.EvaluationResponse
 import com.example.aiexamevaluator.repository.EvaluationRepository
+import com.example.aiexamevaluator.repository.HistoryRepository
 import com.example.aiexamevaluator.utils.ImageUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,10 +29,19 @@ data class EvaluationUiState(
 
 class EvaluationViewModel(
     private val repository: EvaluationRepository = EvaluationRepository(),
+    private val historyRepository: HistoryRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EvaluationUiState())
     val uiState: StateFlow<EvaluationUiState> = _uiState.asStateFlow()
+
+    val historyList: StateFlow<List<EvaluationHistoryEntity>> = historyRepository
+        .getAllHistory()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
 
     fun evaluateExam(
         questionImages: List<Uri>,
@@ -80,6 +94,18 @@ class EvaluationViewModel(
 
             evaluationResult
                 .onSuccess { response ->
+                    viewModelScope.launch(Dispatchers.IO) {
+                        try {
+                            historyRepository.saveEvaluation(
+                                studentName = name,
+                                rollNumber = roll,
+                                totalMarks = totalMarks,
+                                response = response,
+                            )
+                        } catch (_: Exception) {
+                            // Ignore history write failures so evaluation result still reaches the UI.
+                        }
+                    }
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -106,6 +132,16 @@ class EvaluationViewModel(
 
     fun clearResult() {
         _uiState.update { it.copy(result = null) }
+    }
+
+    fun deleteHistory(entity: EvaluationHistoryEntity) {
+        viewModelScope.launch {
+            try {
+                historyRepository.deleteEvaluation(entity)
+            } catch (_: Exception) {
+                // Handle safely.
+            }
+        }
     }
 
     private fun resolveApplicationContext(): Context? {
