@@ -78,13 +78,10 @@ fun AppNavGraph() {
                     rollNumber        = entity.rollNumber,
                     totalMarks        = entity.totalMarks,
                     result            = entity.toEvaluationResponse(),
-                    // "Evaluate Another" repurposed as back to history
+                    evaluatedAt       = entity.evaluatedAt,   // ← add this
                     onEvaluateAnother = { currentScreen = "history" },
                 )
-            } else {
-                // Safety fallback
-                currentScreen = "history"
-            }
+            } else { currentScreen = "history" }
         }
 
         else -> currentScreen = "home"

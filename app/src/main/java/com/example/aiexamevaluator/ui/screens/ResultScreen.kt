@@ -1,5 +1,6 @@
 package com.example.aiexamevaluator.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -33,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,17 +44,22 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.aiexamevaluator.data.model.EvaluationResponse
 import com.example.aiexamevaluator.data.model.Question
+import com.example.aiexamevaluator.utils.PdfReportGenerator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// ── Safe clickable: no ripple, no M2 indication ───────────────────────────────
+// ── Safe clickable ─────────────────────────────────────────────────────────────
 private fun Modifier.safeClick(onClick: () -> Unit): Modifier =
     this.clickable(
         interactionSource = MutableInteractionSource(),
@@ -87,8 +95,15 @@ fun ResultScreen(
     totalMarks       : Int,
     result           : EvaluationResponse,
     onEvaluateAnother: () -> Unit,
+    evaluatedAt      : Long = System.currentTimeMillis(),  // ← for PDF date
     modifier         : Modifier = Modifier,
 ) {
+    val context        = LocalContext.current
+    val scope          = rememberCoroutineScope()
+
+    // PDF generation state
+    var isPdfGenerating by remember { mutableStateOf(false) }
+
     val questions      = result.questions
     val correctCount   = questions.count { it.marksObtained == it.maxMarks && it.maxMarks > 0 }
     val incorrectCount = questions.count { it.marksObtained == 0 }
@@ -97,8 +112,8 @@ fun ResultScreen(
     val percent = if (totalMarks > 0)
         (result.totalObtained * 100f / totalMarks).coerceIn(0f, 100f) else 0f
 
-    val dateStr = remember {
-        SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()).format(Date())
+    val dateStr = remember(evaluatedAt) {
+        SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()).format(Date(evaluatedAt))
     }
 
     var filter by remember { mutableStateOf(Filter.ALL) }
@@ -109,6 +124,31 @@ fun ResultScreen(
             Filter.CORRECT   -> questions.filter { it.marksObtained == it.maxMarks && it.maxMarks > 0 }
             Filter.INCORRECT -> questions.filter { it.marksObtained == 0 }
             Filter.PARTIAL   -> questions.filter { it.marksObtained > 0 && it.marksObtained < it.maxMarks }
+        }
+    }
+
+    // ── PDF generation handler ────────────────────────────────────────────────
+    val onGeneratePdf: () -> Unit = {
+        if (!isPdfGenerating) {
+            isPdfGenerating = true
+            scope.launch {
+                val fileName = withContext(Dispatchers.IO) {
+                    PdfReportGenerator.generate(
+                        context     = context,
+                        studentName = studentName,
+                        rollNumber  = rollNumber,
+                        totalMarks  = totalMarks,
+                        result      = result,
+                        evaluatedAt = evaluatedAt,
+                    )
+                }
+                isPdfGenerating = false
+                if (fileName != null) {
+                    Toast.makeText(context, "Report saved to Downloads:\n$fileName", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "Failed to generate report. Please try again.", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -172,7 +212,11 @@ fun ResultScreen(
         }
 
         // Bottom bar
-        ResultBottomBar(onEvaluateAnother = onEvaluateAnother)
+        ResultBottomBar(
+            onEvaluateAnother = onEvaluateAnother,
+            onGeneratePdf     = onGeneratePdf,
+            isPdfGenerating   = isPdfGenerating,
+        )
     }
 }
 
@@ -199,33 +243,25 @@ private fun ResultTopBar(onBack: () -> Unit) {
                 tint               = Green
             )
         }
-
-        Text(
-            text       = "Evaluation Result",
-            fontWeight = FontWeight.Bold,
-            fontSize   = 18.sp,
-            color      = Green
-        )
-
+        Text("Evaluation Result", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Green)
         Box(
             modifier         = Modifier.size(36.dp).background(GreenLight, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector        = Icons.Default.Person,
-                contentDescription = null,
-                tint               = Green,
-                modifier           = Modifier.size(20.dp)
-            )
+            Icon(Icons.Default.Person, contentDescription = null, tint = Green, modifier = Modifier.size(20.dp))
         }
     }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Bottom bar
+// Bottom bar — Generate Report + Evaluate Another
 // ──────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun ResultBottomBar(onEvaluateAnother: () -> Unit) {
+private fun ResultBottomBar(
+    onEvaluateAnother: () -> Unit,
+    onGeneratePdf    : () -> Unit,
+    isPdfGenerating  : Boolean,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -233,12 +269,24 @@ private fun ResultBottomBar(onEvaluateAnother: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Generate Report button — shows spinner while generating
         OutlinedButton(
-            onClick  = { /* TODO: PDF */ },
+            onClick  = onGeneratePdf,
             modifier = Modifier.weight(1f).height(48.dp),
             shape    = RoundedCornerShape(50),
+            enabled  = !isPdfGenerating,
         ) {
-            Text("Generate Report", fontSize = 12.sp, color = TextDark)
+            if (isPdfGenerating) {
+                CircularProgressIndicator(
+                    color    = Green,
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Saving...", fontSize = 12.sp, color = TextGray)
+            } else {
+                Text("Generate Report", fontSize = 12.sp, color = TextDark)
+            }
         }
 
         Button(
@@ -272,77 +320,35 @@ private fun SummaryCard(
         verticalAlignment     = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-
-            Text(
-                text       = "Evaluation Completed!",
-                fontWeight = FontWeight.Bold,
-                fontSize   = 14.sp,
-                color      = Green
-            )
-            Text(
-                text     = "Here's the detailed analysis.",
-                fontSize = 11.sp,
-                color    = TextGray
-            )
-
+            Text("Evaluation Completed!", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Green)
+            Text("Here's the detailed analysis.", fontSize = 11.sp, color = TextGray)
             Spacer(modifier = Modifier.height(16.dp))
-
             Text("Student Name", fontSize = 10.sp, color = TextGray)
-            Text(
-                text       = studentName.ifBlank { "—" },
-                fontWeight = FontWeight.SemiBold,
-                fontSize   = 14.sp,
-                color      = TextDark
-            )
-
+            Text(studentName.ifBlank { "—" }, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = TextDark)
             Spacer(modifier = Modifier.height(10.dp))
-
             Text("Evaluated On", fontSize = 10.sp, color = TextGray)
             Text(dateStr, fontSize = 12.sp, color = TextDark)
         }
-
         Spacer(modifier = Modifier.width(12.dp))
-
         ScoreRing(percent = percent, obtained = obtained, total = total)
     }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Score ring — Canvas only, zero animation APIs
+// Score ring
 // ──────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun ScoreRing(percent: Float, obtained: Int, total: Int) {
     val sweep = (percent / 100f) * 300f
-
     Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val stroke   = 11.dp.toPx()
             val diameter = size.minDimension - stroke
             val tl       = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
             val sz       = Size(diameter, diameter)
-
-            drawArc(
-                color      = TrackGray,
-                startAngle = 120f,
-                sweepAngle = 300f,
-                useCenter  = false,
-                topLeft    = tl,
-                size       = sz,
-                style      = Stroke(width = stroke, cap = StrokeCap.Round)
-            )
-            if (sweep > 0f) {
-                drawArc(
-                    color      = Green,
-                    startAngle = 120f,
-                    sweepAngle = sweep,
-                    useCenter  = false,
-                    topLeft    = tl,
-                    size       = sz,
-                    style      = Stroke(width = stroke, cap = StrokeCap.Round)
-                )
-            }
+            drawArc(color = TrackGray, startAngle = 120f, sweepAngle = 300f, useCenter = false, topLeft = tl, size = sz, style = Stroke(stroke, cap = StrokeCap.Round))
+            if (sweep > 0f) drawArc(color = Green, startAngle = 120f, sweepAngle = sweep, useCenter = false, topLeft = tl, size = sz, style = Stroke(stroke, cap = StrokeCap.Round))
         }
-
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("${percent.toInt()}%", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Green)
             Text("$obtained / $total", fontSize = 11.sp, color = TextGray, textAlign = TextAlign.Center)
@@ -412,24 +418,16 @@ private fun FilterRow(
     partialCount  : Int,
     onSelect      : (Filter) -> Unit,
 ) {
-    Row(
-        modifier              = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        FilterChip("All",           active == Filter.ALL,       { onSelect(Filter.ALL) },       Modifier.weight(1f))
-        FilterChip("✓$correctCount",active == Filter.CORRECT,   { onSelect(Filter.CORRECT) },   Modifier.weight(1f))
-        FilterChip("✗$incorrectCount",active==Filter.INCORRECT, { onSelect(Filter.INCORRECT) }, Modifier.weight(1f))
-        FilterChip("~$partialCount",active == Filter.PARTIAL,   { onSelect(Filter.PARTIAL) },   Modifier.weight(1f))
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        FilterChip("All",             active == Filter.ALL,       { onSelect(Filter.ALL) },       Modifier.weight(1f))
+        FilterChip("✓$correctCount",  active == Filter.CORRECT,   { onSelect(Filter.CORRECT) },   Modifier.weight(1f))
+        FilterChip("✗$incorrectCount",active == Filter.INCORRECT, { onSelect(Filter.INCORRECT) }, Modifier.weight(1f))
+        FilterChip("~$partialCount",  active == Filter.PARTIAL,   { onSelect(Filter.PARTIAL) },   Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun FilterChip(
-    label   : String,
-    active  : Boolean,
-    onClick : () -> Unit,
-    modifier: Modifier,
-) {
+private fun FilterChip(label: String, active: Boolean, onClick: () -> Unit, modifier: Modifier) {
     Box(
         modifier = modifier
             .background(if (active) Green else CardBg, RoundedCornerShape(50))
@@ -456,7 +454,6 @@ private fun FilterChip(
 private fun QuestionCard(q: Question) {
     val isCorrect   = q.marksObtained == q.maxMarks && q.maxMarks > 0
     val isIncorrect = q.marksObtained == 0
-
     val statusLabel = when { isCorrect -> "Correct"; isIncorrect -> "Incorrect"; else -> "Partial" }
     val statusColor = when { isCorrect -> Color(0xFF2E7D32); isIncorrect -> RedColor; else -> OrangeColor }
     val statusBg    = when { isCorrect -> GreenLight; isIncorrect -> RedBg; else -> OrangeBg }
@@ -469,7 +466,6 @@ private fun QuestionCard(q: Question) {
             .background(CardBg, RoundedCornerShape(16.dp))
             .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
     ) {
-        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -493,9 +489,7 @@ private fun QuestionCard(q: Question) {
                     }
                 }
             }
-
             Spacer(modifier = Modifier.width(8.dp))
-
             Column(horizontalAlignment = Alignment.End) {
                 Box(
                     modifier = Modifier
@@ -505,59 +499,29 @@ private fun QuestionCard(q: Question) {
                     Text(statusLabel, fontSize = 10.sp, color = statusColor, fontWeight = FontWeight.SemiBold)
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text       = "${q.marksObtained} / ${q.maxMarks}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize   = 14.sp,
-                    color      = statusColor
-                )
+                Text("${q.marksObtained} / ${q.maxMarks}", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = statusColor)
             }
         }
 
-        // Expandable detail
         if (expanded) {
             HorizontalDivider(color = BorderColor, thickness = 1.dp)
-
             Column(
                 modifier            = Modifier.fillMaxWidth().padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 if (q.correctPoints.isNotEmpty()) {
-                    DetailBox(
-                        emoji   = "✅",
-                        heading = "What's Correct",
-                        hColor  = Color(0xFF2E7D32),
-                        bg      = GreenLight,
-                        items   = q.correctPoints,
-                        tColor  = Color(0xFF1B5E20)
-                    )
+                    DetailBox("✅", "What's Correct",        Color(0xFF2E7D32), GreenLight, q.correctPoints, Color(0xFF1B5E20))
                 }
-
                 if (q.mistakes.isNotEmpty()) {
                     DetailBox(
-                        emoji   = "❌",
-                        heading = when {
-                            isCorrect   -> "Why No Marks Deducted"
-                            isIncorrect -> "What's Incorrect"
-                            else        -> "Why ${q.maxMarks - q.marksObtained} Mark(s) Deducted"
-                        },
-                        hColor  = RedColor,
-                        bg      = RedBg,
-                        items   = q.mistakes,
-                        tColor  = Color(0xFF7F0000)
+                        "❌",
+                        when { isCorrect -> "Why No Marks Deducted"; isIncorrect -> "What's Incorrect"; else -> "Why ${q.maxMarks - q.marksObtained} Mark(s) Deducted" },
+                        RedColor, RedBg, q.mistakes, Color(0xFF7F0000)
                     )
                 }
-
                 val reason = q.reasoning.trim()
                 if (reason.isNotBlank() && reason != "Attempted" && reason != "Not Attempted") {
-                    DetailBox(
-                        emoji   = "💡",
-                        heading = "What You Should Include",
-                        hColor  = BlueColor,
-                        bg      = BlueBg,
-                        items   = listOf(reason),
-                        tColor  = Color(0xFF0D3C61)
-                    )
+                    DetailBox("💡", "What You Should Include", BlueColor, BlueBg, listOf(reason), Color(0xFF0D3C61))
                 }
             }
         }
@@ -568,14 +532,7 @@ private fun QuestionCard(q: Question) {
 // Detail box
 // ──────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun DetailBox(
-    emoji  : String,
-    heading: String,
-    hColor : Color,
-    bg     : Color,
-    items  : List<String>,
-    tColor : Color,
-) {
+private fun DetailBox(emoji: String, heading: String, hColor: Color, bg: Color, items: List<String>, tColor: Color) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -590,13 +547,7 @@ private fun DetailBox(
         Spacer(modifier = Modifier.height(4.dp))
         items.forEach { point ->
             if (point.isNotBlank()) {
-                Text(
-                    text       = "• $point",
-                    fontSize   = 12.sp,
-                    color      = tColor,
-                    lineHeight = 18.sp,
-                    modifier   = Modifier.padding(start = 4.dp, top = 2.dp)
-                )
+                Text("• $point", fontSize = 12.sp, color = tColor, lineHeight = 18.sp, modifier = Modifier.padding(start = 4.dp, top = 2.dp))
             }
         }
     }
