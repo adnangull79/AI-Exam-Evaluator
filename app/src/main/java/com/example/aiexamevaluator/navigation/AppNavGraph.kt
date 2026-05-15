@@ -13,6 +13,9 @@ import com.example.aiexamevaluator.ui.screens.HomeScreen
 import com.example.aiexamevaluator.ui.screens.HistoryScreen
 import com.example.aiexamevaluator.ui.screens.ResultScreen
 import com.example.aiexamevaluator.ui.screens.WelcomeScreen
+import com.example.aiexamevaluator.ui.screens.AuthSelectionScreen
+import com.example.aiexamevaluator.ui.screens.SignUpScreen
+import com.example.aiexamevaluator.ui.screens.LoginScreen
 import com.example.aiexamevaluator.data.model.EvaluationResponse
 import com.example.aiexamevaluator.data.model.Question
 import com.example.aiexamevaluator.viewmodel.EvaluationViewModel
@@ -52,7 +55,24 @@ fun AppNavGraph() {
     when (currentScreen) {
 
         "welcome" -> WelcomeScreen(
-            onGetStarted = { currentScreen = "home" }
+            onGetStarted = { currentScreen = "auth" }
+        )
+
+        "auth" -> AuthSelectionScreen(
+            onSignUpClick = { currentScreen = "signup" },
+            onLoginClick = { currentScreen = "login" }
+        )
+
+        "signup" -> SignUpScreen(
+            onBackClick = { currentScreen = "auth" },
+            onCreateAccountClick = { currentScreen = "home" },
+            onLoginClick = { currentScreen = "login" }
+        )
+
+        "login" -> LoginScreen(
+            onBackClick = { currentScreen = "auth" },
+            onLoginClick = { currentScreen = "home" },
+            onSignUpClick = { currentScreen = "signup" }
         )
 
         "home" -> HomeScreen(
