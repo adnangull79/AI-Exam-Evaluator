@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "527093688016",
+    "project_id": "ai-exam-evaluator-658b2",
+    "storage_bucket": "ai-exam-evaluator-658b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:527093688016:android:5ea803f071db2f27b8e0d5",
+        "android_client_info": {
+          "package_name": "com.example.aiexamevaluator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkVXg_vsedYmO2OhwvL2i3pIYJxH1HMdM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

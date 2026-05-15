@@ -12,6 +12,7 @@ import com.example.aiexamevaluator.ui.screens.EvaluationScreen
 import com.example.aiexamevaluator.ui.screens.HomeScreen
 import com.example.aiexamevaluator.ui.screens.HistoryScreen
 import com.example.aiexamevaluator.ui.screens.ResultScreen
+import com.example.aiexamevaluator.ui.screens.WelcomeScreen
 import com.example.aiexamevaluator.data.model.EvaluationResponse
 import com.example.aiexamevaluator.data.model.Question
 import com.example.aiexamevaluator.viewmodel.EvaluationViewModel
@@ -38,7 +39,7 @@ private fun EvaluationHistoryEntity.toEvaluationResponse(): EvaluationResponse {
 
 @Composable
 fun AppNavGraph() {
-    var currentScreen by remember { mutableStateOf("home") }
+    var currentScreen by remember { mutableStateOf("welcome") }
 
     // Selected history entity for detail view
     var selectedEntity by remember { mutableStateOf<EvaluationHistoryEntity?>(null) }
@@ -49,6 +50,10 @@ fun AppNavGraph() {
     )
 
     when (currentScreen) {
+
+        "welcome" -> WelcomeScreen(
+            onGetStarted = { currentScreen = "home" }
+        )
 
         "home" -> HomeScreen(
             onStartEvaluationClick = { currentScreen = "evaluation" },
