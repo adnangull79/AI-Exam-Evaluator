@@ -30,13 +30,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.aiexamevaluator.R
+import com.example.aiexamevaluator.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
+    authViewModel: AuthViewModel,
     onBackClick: () -> Unit,
     onLoginClick: () -> Unit,
     onSignUpClick: () -> Unit
 ) {
+    val uiState by authViewModel.uiState.collectAsState()
 
     val primaryGreen = Color(0xFF0D6B3C)
     val lightGreen = Color(0xFFEAF6EE)
@@ -48,6 +51,12 @@ fun LoginScreen(
 
     var passwordVisible by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) {
+            onLoginClick()
+        }
     }
 
     Scaffold(
@@ -304,7 +313,8 @@ fun LoginScreen(
 
                 // Login Button
                 Button(
-                    onClick = onLoginClick,
+                    onClick = { authViewModel.login(email, password) },
+                    enabled = !uiState.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(68.dp),
@@ -331,12 +341,23 @@ fun LoginScreen(
                     ) {
 
                         Text(
-                            text = "Log In",
+                            text = if (uiState.isLoading) "Logging in..." else "Log In",
                             color = Color.White,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
+                }
+
+                uiState.error?.let { error ->
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))

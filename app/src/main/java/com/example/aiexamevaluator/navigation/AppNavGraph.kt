@@ -1,6 +1,7 @@
 package com.example.aiexamevaluator.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,6 +19,8 @@ import com.example.aiexamevaluator.ui.screens.SignUpScreen
 import com.example.aiexamevaluator.ui.screens.LoginScreen
 import com.example.aiexamevaluator.data.model.EvaluationResponse
 import com.example.aiexamevaluator.data.model.Question
+import com.example.aiexamevaluator.viewmodel.AuthViewModel
+import com.example.aiexamevaluator.viewmodel.AuthViewModelFactory
 import com.example.aiexamevaluator.viewmodel.EvaluationViewModel
 import com.example.aiexamevaluator.viewmodel.EvaluationViewModelFactory
 import com.google.gson.Gson
@@ -42,7 +45,16 @@ private fun EvaluationHistoryEntity.toEvaluationResponse(): EvaluationResponse {
 
 @Composable
 fun AppNavGraph() {
-    var currentScreen by remember { mutableStateOf("welcome") }
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory())
+    var currentScreen by remember {
+        mutableStateOf("welcome")
+    }
+
+    LaunchedEffect(Unit) {
+        if (authViewModel.uiState.value.isLoggedIn) {
+            currentScreen = "home"
+        }
+    }
 
     // Selected history entity for detail view
     var selectedEntity by remember { mutableStateOf<EvaluationHistoryEntity?>(null) }
@@ -64,12 +76,14 @@ fun AppNavGraph() {
         )
 
         "signup" -> SignUpScreen(
+            authViewModel = authViewModel,
             onBackClick = { currentScreen = "auth" },
             onCreateAccountClick = { currentScreen = "home" },
             onLoginClick = { currentScreen = "login" }
         )
 
         "login" -> LoginScreen(
+            authViewModel = authViewModel,
             onBackClick = { currentScreen = "auth" },
             onLoginClick = { currentScreen = "home" },
             onSignUpClick = { currentScreen = "signup" }

@@ -31,9 +31,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.aiexamevaluator.R
+import com.example.aiexamevaluator.viewmodel.AuthViewModel
 
 @Composable
 fun SignUpScreen(
+    authViewModel: AuthViewModel,
     onBackClick: () -> Unit,
     onCreateAccountClick: () -> Unit,
     onLoginClick: () -> Unit
@@ -51,6 +53,15 @@ fun SignUpScreen(
 
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
+
+    val uiState by authViewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            onCreateAccountClick()
+            authViewModel.resetSuccess()
+        }
+    }
 
     Scaffold(
         containerColor = Color.White
@@ -399,7 +410,14 @@ fun SignUpScreen(
 
                 // Create Button
                 Button(
-                    onClick = onCreateAccountClick,
+                    onClick = {
+                        authViewModel.signUp(
+                            fullName = fullName,
+                            email = email,
+                            password = password,
+                            confirmPassword = confirmPassword
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(68.dp),
@@ -407,7 +425,8 @@ fun SignUpScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent
                     ),
-                    contentPadding = PaddingValues()
+                    contentPadding = PaddingValues(),
+                    enabled = !uiState.isLoading
                 ) {
 
                     Box(
@@ -424,14 +443,32 @@ fun SignUpScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-
-                        Text(
-                            text = "Create Account",
-                            color = Color.White,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Create Account",
+                                color = Color.White,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
+                }
+
+                if (!uiState.error.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = uiState.error ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(22.dp))
