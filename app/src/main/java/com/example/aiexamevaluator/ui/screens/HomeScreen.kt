@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,13 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// ── Safe clickable ─────────────────────────────────────────────────────────────
-private fun Modifier.safeClick(onClick: () -> Unit): Modifier =
-    this.clickable(
-        interactionSource = MutableInteractionSource(),
-        indication = null,
-        onClick = onClick
-    )
+@Composable
+private fun rememberSafeInteractionSource() = remember { MutableInteractionSource() }
 
 // ── Shared colours (internal so HistoryScreen can use them) ───────────────────
 internal val AppGreen      = Color(0xFF1B5E3C)
@@ -71,6 +67,8 @@ fun UnifiedBottomBar(
     onFabClick     : () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
+    val fabInteractionSource = rememberSafeInteractionSource()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,7 +123,12 @@ fun UnifiedBottomBar(
                 .size(62.dp)
                 .offset(y = (-14).dp)
                 .background(AppFabColor, CircleShape)
-                .safeClick { onFabClick() }
+                .clickable(
+                    interactionSource = fabInteractionSource,
+                    indication = null
+                ) {
+                    onFabClick()
+                }
                 .align(Alignment.TopCenter),
             contentAlignment = Alignment.Center
         ) {
@@ -157,9 +160,16 @@ private fun NavTabItem(
     onClick: () -> Unit,
     icon   : @Composable () -> Unit,
 ) {
+    val tabInteractionSource = rememberSafeInteractionSource()
+
     Column(
         modifier            = Modifier
-            .safeClick { onClick() }
+            .clickable(
+                interactionSource = tabInteractionSource,
+                indication = null
+            ) {
+                onClick()
+            }
             .padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -182,6 +192,7 @@ private fun NavTabItem(
 fun HomeScreen(
     onStartEvaluationClick: () -> Unit,
     onHistoryClick        : () -> Unit,
+    onSettingsClick       : () -> Unit,
     modifier              : Modifier = Modifier,
 ) {
     val secondaryText = Color(0xFF7A7A7A)
@@ -193,7 +204,7 @@ fun HomeScreen(
                 activeTab      = BottomTab.NONE,       // no tab active on home
                 onHistoryClick = onHistoryClick,
                 onFabClick     = onStartEvaluationClick,
-                onSettingsClick= { /* TODO */ }
+                onSettingsClick= onSettingsClick
             )
         },
         containerColor = Color(0xFFF5F7F6),

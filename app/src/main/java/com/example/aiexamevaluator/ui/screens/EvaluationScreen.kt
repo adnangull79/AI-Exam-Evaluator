@@ -38,12 +38,8 @@ import com.example.aiexamevaluator.R
 import com.example.aiexamevaluator.data.model.EvaluationResponse
 import com.example.aiexamevaluator.viewmodel.EvaluationViewModel
 
-private fun Modifier.safeClickable(onClick: () -> Unit): Modifier =
-    this.clickable(
-        interactionSource = MutableInteractionSource(),
-        indication        = null,
-        onClick           = onClick,
-    )
+@Composable
+private fun rememberSafeInteractionSource() = remember { MutableInteractionSource() }
 
 private fun appendUrisIfWithinLimit(
     current: List<Uri>,
@@ -136,11 +132,16 @@ fun EvaluationScreen(
 
     // ── ✅ Full screen loading — replaces the entire screen, nothing behind visible
     if (uiState.isLoading) {
+        val loadingInteractionSource = rememberSafeInteractionSource()
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF5F7F6))      // ← same bg as the form, fully opaque
-                .safeClickable { /* block all taps */ },
+                .clickable(
+                    interactionSource = loadingInteractionSource,
+                    indication = null
+                ) { /* block all taps */ },
             contentAlignment = Alignment.Center,
         ) {
             Column(
@@ -368,7 +369,10 @@ fun UploadSectionWithPreview(
                                         .align(Alignment.TopEnd)
                                         .size(22.dp)
                                         .background(Color(0xFFE53935), RoundedCornerShape(50))
-                                        .safeClickable { onRemove(uri) },
+                                            .clickable(
+                                                interactionSource = rememberSafeInteractionSource(),
+                                                indication = null
+                                            ) { onRemove(uri) },
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
@@ -408,8 +412,13 @@ fun EvaluationTopBar(onBackClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment     = Alignment.CenterVertically,
     ) {
+        val backInteractionSource = rememberSafeInteractionSource()
+
         Box(
-            modifier         = Modifier.size(40.dp).safeClickable { onBackClick() },
+            modifier         = Modifier.size(40.dp).clickable(
+                interactionSource = backInteractionSource,
+                indication = null
+            ) { onBackClick() },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -457,10 +466,15 @@ fun TabItem(
     color    : Color,
     onClick  : () -> Unit,
 ) {
+    val tabInteractionSource = rememberSafeInteractionSource()
+
     Box(
         modifier = modifier
             .background(if (selected) color else Color.Transparent, RoundedCornerShape(50))
-            .safeClickable { onClick() }
+            .clickable(
+                interactionSource = tabInteractionSource,
+                indication = null
+            ) { onClick() }
             .padding(vertical = 10.dp, horizontal = 8.dp),
         contentAlignment = Alignment.Center,
     ) {

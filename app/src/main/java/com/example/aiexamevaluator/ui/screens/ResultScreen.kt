@@ -59,13 +59,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// ── Safe clickable ─────────────────────────────────────────────────────────────
-private fun Modifier.safeClick(onClick: () -> Unit): Modifier =
-    this.clickable(
-        interactionSource = MutableInteractionSource(),
-        indication = null,
-        onClick = onClick
-    )
+@Composable
+private fun rememberSafeInteractionSource() = remember { MutableInteractionSource() }
 
 // ── Colours ────────────────────────────────────────────────────────────────────
 private val Green       = Color(0xFF1B5E3C)
@@ -225,6 +220,8 @@ fun ResultScreen(
 // ──────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun ResultTopBar(onBack: () -> Unit) {
+    val backInteractionSource = rememberSafeInteractionSource()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,7 +231,12 @@ private fun ResultTopBar(onBack: () -> Unit) {
         verticalAlignment     = Alignment.CenterVertically
     ) {
         Box(
-            modifier         = Modifier.size(40.dp).safeClick { onBack() },
+            modifier         = Modifier.size(40.dp).clickable(
+                interactionSource = backInteractionSource,
+                indication = null
+            ) {
+                onBack()
+            },
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -428,11 +430,18 @@ private fun FilterRow(
 
 @Composable
 private fun FilterChip(label: String, active: Boolean, onClick: () -> Unit, modifier: Modifier) {
+    val chipInteractionSource = rememberSafeInteractionSource()
+
     Box(
         modifier = modifier
             .background(if (active) Green else CardBg, RoundedCornerShape(50))
             .border(1.dp, if (active) Green else BorderColor, RoundedCornerShape(50))
-            .safeClick { onClick() }
+            .clickable(
+                interactionSource = chipInteractionSource,
+                indication = null
+            ) {
+                onClick()
+            }
             .padding(vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -459,6 +468,7 @@ private fun QuestionCard(q: Question) {
     val statusBg    = when { isCorrect -> GreenLight; isIncorrect -> RedBg; else -> OrangeBg }
 
     var expanded by remember { mutableStateOf(true) }
+    val cardInteractionSource = rememberSafeInteractionSource()
 
     Column(
         modifier = Modifier
@@ -469,7 +479,12 @@ private fun QuestionCard(q: Question) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .safeClick { expanded = !expanded }
+                .clickable(
+                    interactionSource = cardInteractionSource,
+                    indication = null
+                ) {
+                    expanded = !expanded
+                }
                 .padding(14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment     = Alignment.CenterVertically

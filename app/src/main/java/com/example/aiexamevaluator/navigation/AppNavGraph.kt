@@ -1,7 +1,6 @@
 package com.example.aiexamevaluator.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -13,6 +12,8 @@ import com.example.aiexamevaluator.ui.screens.EvaluationScreen
 import com.example.aiexamevaluator.ui.screens.HomeScreen
 import com.example.aiexamevaluator.ui.screens.HistoryScreen
 import com.example.aiexamevaluator.ui.screens.ResultScreen
+import com.example.aiexamevaluator.ui.screens.SettingsScreen
+import com.example.aiexamevaluator.ui.screens.SplashScreen
 import com.example.aiexamevaluator.ui.screens.WelcomeScreen
 import com.example.aiexamevaluator.ui.screens.AuthSelectionScreen
 import com.example.aiexamevaluator.ui.screens.SignUpScreen
@@ -47,13 +48,7 @@ private fun EvaluationHistoryEntity.toEvaluationResponse(): EvaluationResponse {
 fun AppNavGraph() {
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory())
     var currentScreen by remember {
-        mutableStateOf("welcome")
-    }
-
-    LaunchedEffect(Unit) {
-        if (authViewModel.uiState.value.isLoggedIn) {
-            currentScreen = "home"
-        }
+        mutableStateOf("splash")
     }
 
     // Selected history entity for detail view
@@ -65,6 +60,16 @@ fun AppNavGraph() {
     )
 
     when (currentScreen) {
+
+        "splash" -> SplashScreen(
+            onSplashFinished = {
+                if (authViewModel.uiState.value.isLoggedIn) {
+                    currentScreen = "home"
+                } else {
+                    currentScreen = "welcome"
+                }
+            }
+        )
 
         "welcome" -> WelcomeScreen(
             onGetStarted = { currentScreen = "auth" }
@@ -92,6 +97,7 @@ fun AppNavGraph() {
         "home" -> HomeScreen(
             onStartEvaluationClick = { currentScreen = "evaluation" },
             onHistoryClick         = { currentScreen = "history" },
+            onSettingsClick        = { currentScreen = "settings" },
         )
 
         "evaluation" -> EvaluationScreen(
@@ -103,6 +109,7 @@ fun AppNavGraph() {
             viewModel         = viewModel,
             onStartEvaluation = { currentScreen = "evaluation" },
             onHomeClick       = { currentScreen = "home" },
+            onSettingsClick   = { currentScreen = "settings" },
             onCardClick       = { entity ->
                 selectedEntity = entity
                 currentScreen  = "history_detail"
@@ -122,6 +129,12 @@ fun AppNavGraph() {
                 )
             } else { currentScreen = "history" }
         }
+
+        "settings" -> SettingsScreen(
+            onHistoryClick = { currentScreen = "history" },
+            onStartEvaluationClick = { currentScreen = "evaluation" },
+            onSettingsClick = { }
+        )
 
         else -> currentScreen = "home"
     }

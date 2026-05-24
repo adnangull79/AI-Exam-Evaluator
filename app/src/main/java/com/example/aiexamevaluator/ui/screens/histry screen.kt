@@ -51,13 +51,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// ── Safe clickable ─────────────────────────────────────────────────────────────
-private fun Modifier.safeClick(onClick: () -> Unit): Modifier =
-    this.clickable(
-        interactionSource = MutableInteractionSource(),
-        indication = null,
-        onClick = onClick
-    )
+@Composable
+private fun rememberSafeInteractionSource() = remember { MutableInteractionSource() }
 
 // ── Local colours ──────────────────────────────────────────────────────────────
 private val PageBg    = Color(0xFFF5F7F6)
@@ -75,10 +70,12 @@ fun HistoryScreen(
     viewModel        : EvaluationViewModel,
     onStartEvaluation: () -> Unit,
     onHomeClick      : () -> Unit = {},
-    onCardClick      : (EvaluationHistoryEntity) -> Unit = {},  // ← NEW
+    onSettingsClick  : () -> Unit = {},
+    onCardClick      : (EvaluationHistoryEntity) -> Unit = {},
     modifier         : Modifier = Modifier,
 ) {
     val historyList by viewModel.historyList.collectAsState()
+    val filterInteractionSource = rememberSafeInteractionSource()
 
     var searchQuery by remember { mutableStateOf("") }
     var activeTab   by remember { mutableStateOf(HistoryTab.ALL) }
@@ -134,7 +131,10 @@ fun HistoryScreen(
                         .height(56.dp)
                         .background(AppCardBg, RoundedCornerShape(12.dp))
                         .border(1.dp, AppBorder, RoundedCornerShape(12.dp))
-                        .safeClick { }
+                        .clickable(
+                            interactionSource = filterInteractionSource,
+                            indication        = null
+                        ) { }
                         .padding(horizontal = 14.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -149,7 +149,7 @@ fun HistoryScreen(
                     .background(AppCardBg, RoundedCornerShape(12.dp))
                     .border(1.dp, AppBorder, RoundedCornerShape(12.dp))
             ) {
-                HistoryTabItem("All Evaluations", activeTab == HistoryTab.ALL,       Modifier.weight(1f)) { activeTab = HistoryTab.ALL }
+                HistoryTabItem("All Evaluations", activeTab == HistoryTab.ALL,        Modifier.weight(1f)) { activeTab = HistoryTab.ALL }
                 Box(modifier = Modifier.width(1.dp).height(44.dp).background(AppBorder))
                 HistoryTabItem("Subjective",      activeTab == HistoryTab.SUBJECTIVE, Modifier.weight(1f)) { activeTab = HistoryTab.SUBJECTIVE }
                 Box(modifier = Modifier.width(1.dp).height(44.dp).background(AppBorder))
@@ -176,8 +176,8 @@ fun HistoryScreen(
                         Text("📋", fontSize = 36.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text     = if (searchQuery.isBlank()) "No evaluations yet." else "No results found.",
-                            color    = AppGray,
+                            text  = if (searchQuery.isBlank()) "No evaluations yet." else "No results found.",
+                            color = AppGray,
                             fontSize = 14.sp
                         )
                     }
@@ -185,9 +185,9 @@ fun HistoryScreen(
             } else {
                 filtered.forEach { entity ->
                     HistoryCard(
-                        entity    = entity,
-                        onDelete  = { viewModel.deleteHistory(entity) },
-                        onCardClick = { onCardClick(entity) }   // ← wire click
+                        entity      = entity,
+                        onDelete    = { viewModel.deleteHistory(entity) },
+                        onCardClick = { onCardClick(entity) }
                     )
                 }
             }
@@ -197,10 +197,10 @@ fun HistoryScreen(
 
         // Unified bottom bar — History tab active
         UnifiedBottomBar(
-            activeTab      = BottomTab.HISTORY,
-            onHistoryClick = { /* already here */ },
-            onFabClick     = onStartEvaluation,
-            onSettingsClick= { }
+            activeTab       = BottomTab.HISTORY,
+            onHistoryClick  = { /* already here */ },
+            onFabClick      = onStartEvaluation,
+            onSettingsClick = onSettingsClick
         )
     }
 }
@@ -235,10 +235,16 @@ private fun HistoryTabItem(
     modifier: Modifier,
     onClick : () -> Unit,
 ) {
+    // FIX: removed stray `cardInteractionSource` declaration that was leaking out of scope here
+    val tabInteractionSource = rememberSafeInteractionSource()
+
     Box(
         modifier = modifier
             .background(if (active) AppGreen else Color.Transparent, RoundedCornerShape(11.dp))
-            .safeClick { onClick() }
+            .clickable(
+                interactionSource = tabInteractionSource,
+                indication        = null
+            ) { onClick() }
             .padding(vertical = 12.dp, horizontal = 4.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -250,11 +256,15 @@ private fun HistoryTabItem(
             maxLines   = 1
         )
     }
+    // FIX: removed the stray `val cardInteractionSource = rememberSafeInteractionSource()`
+    // that was incorrectly placed here outside any composable scope
 }
 
 // ── History card — tappable ────────────────────────────────────────────────────
 @Composable
 private fun HistoryCard(
+    // FIX: restored correct function signature — entity param was missing,
+    // and a floating .clickable block was incorrectly placed before the params
     entity     : EvaluationHistoryEntity,
     onDelete   : () -> Unit,
     onCardClick: () -> Unit,
@@ -278,7 +288,10 @@ private fun HistoryCard(
             .fillMaxWidth()
             .background(AppCardBg, RoundedCornerShape(16.dp))
             .border(1.dp, AppBorder, RoundedCornerShape(16.dp))
-            .safeClick { onCardClick() }           // ← tapping the card
+            .clickable(
+                interactionSource = rememberSafeInteractionSource(),
+                indication        = null
+            ) { onCardClick() }
             .padding(14.dp),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -347,14 +360,22 @@ private fun MiniScoreRing(percent: Float, obtained: Int, total: Int) {
             val tl       = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
             val sz       = Size(diameter, diameter)
             drawArc(
-                color = TrackGray, startAngle = -90f, sweepAngle = 360f,
-                useCenter = false, topLeft = tl, size = sz,
-                style = Stroke(stroke, cap = StrokeCap.Round)
+                color       = TrackGray,
+                startAngle  = -90f,
+                sweepAngle  = 360f,
+                useCenter   = false,
+                topLeft     = tl,
+                size        = sz,
+                style       = Stroke(stroke, cap = StrokeCap.Round)
             )
             if (sweep > 0f) drawArc(
-                color = ringColor, startAngle = -90f, sweepAngle = sweep,
-                useCenter = false, topLeft = tl, size = sz,
-                style = Stroke(stroke, cap = StrokeCap.Round)
+                color       = ringColor,
+                startAngle  = -90f,
+                sweepAngle  = sweep,
+                useCenter   = false,
+                topLeft     = tl,
+                size        = sz,
+                style       = Stroke(stroke, cap = StrokeCap.Round)
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
