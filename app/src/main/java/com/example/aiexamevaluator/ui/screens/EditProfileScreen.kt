@@ -22,29 +22,40 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.aiexamevaluator.viewmodel.UserViewModel
+import com.example.aiexamevaluator.viewmodel.UserViewModelFactory
+import android.widget.Toast
 
 private val PrimaryGreen = Color(0xFF0B6E4F)
 private val LightGreen = Color(0xFFEAF6F0)
@@ -61,8 +72,52 @@ private fun rememberSafeInteractionSource() = remember { MutableInteractionSourc
 @Composable
 fun EditProfileScreen(
     onBackClick: () -> Unit,
+    onLogout: () -> Unit,
+    onDeleteAccount: () -> Unit,
 ) {
+    val userViewModel: UserViewModel = viewModel(
+        factory = UserViewModelFactory()
+    )
+    val uiState by userViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    var showEditNameDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var pendingAction by remember { mutableStateOf<String?>(null) }
+    var fullNameInput by remember { mutableStateOf(uiState.fullName) }
+    var currentPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
     BackHandler(onBack = onBackClick)
+
+    LaunchedEffect(uiState.updateSuccess, pendingAction) {
+        if (uiState.updateSuccess && pendingAction != null) {
+            when (pendingAction) {
+                "edit_name" -> {
+                    Toast.makeText(context, "Full name updated.", Toast.LENGTH_SHORT).show()
+                    showEditNameDialog = false
+                }
+                "change_password" -> {
+                    Toast.makeText(context, "Password updated.", Toast.LENGTH_SHORT).show()
+                    showPasswordDialog = false
+                }
+                "delete_account" -> {
+                    onDeleteAccount()
+                }
+            }
+            pendingAction = null
+            userViewModel.clearUpdateSuccess()
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         containerColor = Color(0xFFF5F7F6),
@@ -75,24 +130,55 @@ fun EditProfileScreen(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { ProfileHeader() }
-            item {
-                InfoCard(
-                    title = "Personal Information",
-                    subtitle = "Update your personal details",
-                    items = listOf(
-                        InfoRowItem("Full Name", "Muhammad Ali"),
-                        InfoRowItem("Email Address", "muhammad.ali@exameval.ai"),
-                    ),
-                )
+            if (uiState.isLoading) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else {
+                item {
+                    ProfileHeader(
+                        fullName = uiState.fullName,
+                        email = uiState.email
+                    )
+                }
+
+                item {
+                    PersonalInformationCard(
+                        title = "Personal Information",
+                        subtitle = "Update your personal details",
+                        fullName = uiState.fullName,
+                        email = uiState.email,
+                        onFullNameClick = {
+                            fullNameInput = uiState.fullName
+                            showEditNameDialog = true
+                        },
+                        items = listOf(
+                            InfoRowItem("Full Name", uiState.fullName),
+                            InfoRowItem("Email Address", uiState.email)
+                        )
+                    )
+                }
             }
             item {
                 ActionCard(
                     icon = Icons.Default.Lock,
                     title = "Change Password",
                     subtitle = "Update your account password",
-                    accentColor = PrimaryGreen,
+                    accentColor = LightGreen,
                     contentColor = DarkText,
+                    onClick = {
+                        currentPassword = ""
+                        newPassword = ""
+                        confirmPassword = ""
+                        showPasswordDialog = true
+                    },
                 )
             }
             item {
@@ -102,6 +188,7 @@ fun EditProfileScreen(
                     subtitle = "Sign out from your account",
                     accentColor = DangerRed,
                     contentColor = DangerRed,
+                    onClick = { showLogoutDialog = true },
                 )
             }
             item {
@@ -111,6 +198,7 @@ fun EditProfileScreen(
                     subtitle = "Permanently delete your account and all data",
                     accentColor = DangerRed,
                     contentColor = DangerRed,
+                    onClick = { showDeleteDialog = true },
                 )
             }
             item {
@@ -118,6 +206,139 @@ fun EditProfileScreen(
             }
             item { Spacer(modifier = Modifier.height(4.dp)) }
         }
+    }
+
+    if (showEditNameDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditNameDialog = false },
+            title = { Text(text = "Edit Full Name") },
+            text = {
+                OutlinedTextField(
+                    value = fullNameInput,
+                    onValueChange = { fullNameInput = it },
+                    label = { Text(text = "Full Name") },
+                    singleLine = true,
+                    enabled = !uiState.isUpdating,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingAction = "edit_name"
+                        userViewModel.updateFullName(fullNameInput)
+                    },
+                    enabled = !uiState.isUpdating,
+                ) {
+                    Text(text = "Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditNameDialog = false }) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
+
+    if (showPasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { showPasswordDialog = false },
+            title = { Text(text = "Change Password") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = currentPassword,
+                        onValueChange = { currentPassword = it },
+                        label = { Text(text = "Current Password") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        enabled = !uiState.isUpdating,
+                    )
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it },
+                        label = { Text(text = "New Password") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        enabled = !uiState.isUpdating,
+                    )
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text(text = "Confirm New Password") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        enabled = !uiState.isUpdating,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newPassword != confirmPassword) {
+                            Toast.makeText(context, "Passwords do not match.", Toast.LENGTH_SHORT).show()
+                            return@TextButton
+                        }
+                        pendingAction = "change_password"
+                        userViewModel.changePassword(currentPassword, newPassword)
+                    },
+                    enabled = !uiState.isUpdating,
+                ) {
+                    Text(text = "Update")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPasswordDialog = false }) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(text = "Logout?") },
+            text = { Text(text = "Are you sure you want to sign out?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onLogout()
+                        showLogoutDialog = false
+                    }
+                ) {
+                    Text(text = "Logout")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(text = "Delete Account?") },
+            text = { Text(text = "This will permanently delete your account and all associated data.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingAction = "delete_account"
+                        userViewModel.deleteAccount()
+                    }
+                ) {
+                    Text(text = "Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -149,71 +370,49 @@ private fun EditProfileTopBar(onBackClick: () -> Unit) {
         }
 
         Text(
-            text = "Edit Profile",
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = PrimaryGreen,
+                text = "Edit Profile",
+                color = PrimaryGreen,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
         )
 
-        Spacer(modifier = Modifier.size(40.dp))
+            Spacer(modifier = Modifier.size(40.dp))
     }
 }
 
 @Composable
-private fun ProfileHeader() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp, bottom = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+private fun ProfileHeader(
+    fullName: String,
+    email: String,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
-        Box(
-            modifier = Modifier.size(112.dp),
-            contentAlignment = Alignment.Center,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(112.dp)
-                    .clip(CircleShape)
-                    .background(LightGreen),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile avatar",
-                    tint = PrimaryGreen,
-                    modifier = Modifier.size(58.dp),
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(PrimaryGreen),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CameraAlt,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Muhammad Ali",
-                color = DarkText,
+                text = "Edit Profile",
+                color = PrimaryGreen,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
             )
-            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
-                text = "muhammad.ali@exameval.ai",
+                text = fullName,
+                color = DarkText,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Text(
+                text = email,
                 color = LightText,
                 fontSize = 14.sp,
             )
@@ -222,9 +421,12 @@ private fun ProfileHeader() {
 }
 
 @Composable
-private fun InfoCard(
+private fun PersonalInformationCard(
     title: String,
     subtitle: String,
+    fullName: String,
+    email: String,
+    onFullNameClick: () -> Unit,
     items: List<InfoRowItem>,
 ) {
     Card(
@@ -254,7 +456,10 @@ private fun InfoCard(
             }
 
             items.forEachIndexed { index, item ->
-                InfoRow(item = item)
+                InfoRow(
+                    item = item,
+                    onClick = if (item.label == "Full Name") onFullNameClick else null,
+                )
                 if (index != items.lastIndex) {
                     HorizontalDivider(color = BorderColor)
                 }
@@ -269,7 +474,10 @@ private data class InfoRowItem(
 )
 
 @Composable
-private fun InfoRow(item: InfoRowItem) {
+private fun InfoRow(
+    item: InfoRowItem,
+    onClick: (() -> Unit)? = null,
+) {
     val rowInteractionSource = rememberSafeInteractionSource()
 
     Row(
@@ -278,7 +486,8 @@ private fun InfoRow(item: InfoRowItem) {
             .clickable(
                 interactionSource = rowInteractionSource,
                 indication = null,
-            ) { }
+                enabled = onClick != null,
+            ) { onClick?.invoke() }
             .padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -313,6 +522,7 @@ private fun ActionCard(
     subtitle: String,
     accentColor: Color,
     contentColor: Color,
+    onClick: () -> Unit = { },
 ) {
     val cardInteractionSource = rememberSafeInteractionSource()
 
@@ -328,7 +538,7 @@ private fun ActionCard(
                 .clickable(
                     interactionSource = cardInteractionSource,
                     indication = null,
-                ) { }
+                ) { onClick() }
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

@@ -23,7 +23,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -314,23 +313,25 @@ fun HomeScreen(
 // ── Top bar ────────────────────────────────────────────────────────────────────
 @Composable
 private fun HomeTopBar() {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically,
     ) {
-        Icon(Icons.Default.Menu, contentDescription = null, tint = AppGreen)
+        Icon(
+            imageVector = Icons.Default.Menu,
+            contentDescription = null,
+            tint = AppGreen,
+            modifier = Modifier.align(Alignment.CenterStart),
+        )
 
-        Text("ExamEval AI", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = AppGreen)
-
-        Box(
-            modifier         = Modifier.size(36.dp).background(AppGreenLight, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Default.Person, contentDescription = null, tint = AppGreen)
-        }
+        Text(
+            text = "ExamEval AI",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = AppGreen,
+            modifier = Modifier.align(Alignment.Center),
+        )
     }
 }
 

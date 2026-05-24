@@ -62,6 +62,16 @@ fun AppNavGraph() {
     // Selected history entity for detail view
     var selectedEntity by remember { mutableStateOf<EvaluationHistoryEntity?>(null) }
 
+    fun clearProtectedState() {
+        selectedEntity = null
+        resultSource = "evaluation"
+    }
+
+    fun navigateToAuth() {
+        clearProtectedState()
+        currentScreen = "auth"
+    }
+
     val context = LocalContext.current
     val activity = context as? Activity
     val viewModel: EvaluationViewModel = viewModel(
@@ -94,6 +104,8 @@ fun AppNavGraph() {
 
             "faq" -> currentScreen = "settings"
 
+            "edit_profile" -> currentScreen = "settings"
+
             else -> Unit
         }
     }
@@ -102,7 +114,7 @@ fun AppNavGraph() {
 
         "splash" -> SplashScreen(
             onSplashFinished = {
-                if (authViewModel.uiState.value.isLoggedIn) {
+                if (authViewModel.isUserLoggedIn()) {
                     currentScreen = "home"
                 } else {
                     currentScreen = "welcome"
@@ -186,6 +198,10 @@ fun AppNavGraph() {
             onAboutClick = { currentScreen = "about" },
             onFaqClick = { currentScreen = "faq" },
             onEditProfileClick = { currentScreen = "edit_profile" },
+            onLogout = {
+                authViewModel.logout()
+                navigateToAuth()
+            },
         )
 
         "about" -> AboutScreen(
@@ -197,7 +213,15 @@ fun AppNavGraph() {
         )
 
         "edit_profile" -> EditProfileScreen(
-            onBackClick = { currentScreen = "settings" }
+            onBackClick = { currentScreen = "settings" },
+            onLogout = {
+                authViewModel.logout()
+                navigateToAuth()
+            },
+            onDeleteAccount = {
+                authViewModel.logout()
+                navigateToAuth()
+            },
         )
 
         else -> currentScreen = "home"

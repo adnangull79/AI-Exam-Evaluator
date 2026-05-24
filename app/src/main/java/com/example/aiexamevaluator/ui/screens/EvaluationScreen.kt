@@ -15,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -402,12 +401,10 @@ fun UploadSectionWithPreview(
 
 @Composable
 fun EvaluationTopBar(onBackClick: () -> Unit) {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically,
     ) {
         val backInteractionSource = rememberSafeInteractionSource()
 
@@ -429,11 +426,7 @@ fun EvaluationTopBar(onBackClick: () -> Unit) {
             fontWeight = FontWeight.Bold,
             fontSize   = 18.sp,
             color      = Color(0xFF1B5E3C),
-        )
-        Icon(
-            imageVector        = Icons.Default.Person,
-            contentDescription = null,
-            tint               = Color(0xFF1B5E3C),
+            modifier = Modifier.align(Alignment.Center),
         )
     }
 }

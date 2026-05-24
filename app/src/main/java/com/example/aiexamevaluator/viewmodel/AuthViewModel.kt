@@ -156,6 +156,28 @@ class AuthViewModel(
         }
     }
 
+    fun logout() {
+        repository.logout()
+        _uiState.value = AuthUiState(
+            isLoading = false,
+            isSuccess = false,
+            isLoggedIn = false,
+            error = null,
+        )
+    }
+
+    fun refreshLoginState() {
+        _uiState.update {
+            it.copy(
+                isLoggedIn = repository.isUserLoggedIn(),
+            )
+        }
+    }
+
+    fun isUserLoggedIn(): Boolean {
+        return repository.isUserLoggedIn()
+    }
+
     fun clearError() {
         _uiState.update { it.copy(error = null) }
     }

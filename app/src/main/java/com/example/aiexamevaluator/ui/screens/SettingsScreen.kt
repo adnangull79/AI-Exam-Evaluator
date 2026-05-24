@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -28,18 +28,21 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +53,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.aiexamevaluator.viewmodel.UserViewModel
+import com.example.aiexamevaluator.viewmodel.UserViewModelFactory
 
 // ── FIX: Added helper to avoid PlatformRipple crash on newer Compose ──────────
 @Composable
@@ -75,7 +82,14 @@ fun SettingsScreen(
     onAboutClick          : () -> Unit,
     onFaqClick            : () -> Unit,
     onEditProfileClick    : () -> Unit,
+    onLogout              : () -> Unit,
 ) {
+    val userViewModel: UserViewModel = viewModel(
+        factory = UserViewModelFactory()
+    )
+    val uiState by userViewModel.uiState.collectAsState()
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     val options = listOf(
         SettingsOption("Edit Profile",       "Update your personal information",  Icons.Default.Edit),
         SettingsOption("Delete History",     "Clear your evaluated exam records", Icons.Default.DeleteSweep),
@@ -103,38 +117,32 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
-                Row(
-                    modifier          = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Spacer(modifier = Modifier.size(40.dp))
+                Text(
+                    text = "Settings",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    color = PrimaryGreen,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
 
-                    Text(
-                        text       = "Settings",
-                        modifier   = Modifier.weight(1f),
-                        textAlign  = TextAlign.Center,
-                        color      = PrimaryGreen,
-                        fontSize   = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+            item {
+                when {
+                    uiState.isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
 
-                    IconButton(
-                        onClick  = { },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(LightGreen),
-                    ) {
-                        Icon(
-                            imageVector        = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint               = PrimaryGreen,
-                        )
+                    uiState.isDataLoaded -> {
+                        ProfileSection(fullName = uiState.fullName, email = uiState.email)
                     }
                 }
             }
-
-            item { ProfileSection() }
 
             item { AppearanceCard() }
 
@@ -165,58 +173,82 @@ fun SettingsScreen(
                 }
             }
 
-            item { LogoutCard() }
+            item { LogoutCard(onClick = { showLogoutDialog = true }) }
 
             item { Spacer(modifier = Modifier.height(8.dp)) }
         }
     }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(text = "Logout?") },
+            text = { Text(text = "Are you sure you want to sign out?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onLogout()
+                        showLogoutDialog = false
+                    }
+                ) {
+                    Text(text = "Logout")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun ProfileSection() {
+fun ProfileSection(
+    fullName: String,
+    email: String,
+) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(22.dp),
         colors    = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
-        Row(
-            modifier          = Modifier
+        Column(
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 18.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier         = Modifier
-                    .size(66.dp)
-                    .clip(CircleShape)
-                    .background(LightGreen),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector        = Icons.Default.Person,
-                    contentDescription = "User Avatar",
-                    tint               = PrimaryGreen,
-                    modifier           = Modifier.size(34.dp),
-                )
-            }
+            Text(
+                text = "Full Name",
+                color = PrimaryGreen,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = fullName,
+                color = DarkText,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+            )
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = LightGreen, thickness = 1.dp)
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text       = "Muhammad Ali",
-                    color      = DarkText,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize   = 18.sp,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text     = "muhammad.ali@exameval.ai",
-                    color    = LightText,
-                    fontSize = 14.sp,
-                )
-            }
+            Text(
+                text = "Email",
+                color = PrimaryGreen,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = email,
+                color = LightText,
+                fontSize = 14.sp,
+            )
         }
     }
 }
@@ -404,7 +436,7 @@ fun SettingsOptionItem(
 }
 
 @Composable
-fun LogoutCard() {
+fun LogoutCard(onClick: () -> Unit) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(22.dp),
@@ -414,11 +446,10 @@ fun LogoutCard() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                // ── FIX 4: explicit interactionSource + indication = null ──────
                 .clickable(
                     interactionSource = rememberSafeInteractionSource(),
                     indication        = null,
-                ) { }
+                ) { onClick() }
                 .padding(horizontal = 14.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -473,6 +504,7 @@ private fun SettingsScreenPreview() {
             onAboutClick           = { },
             onFaqClick             = { },
             onEditProfileClick     = { },
+            onLogout               = { },
         )
     }
 }

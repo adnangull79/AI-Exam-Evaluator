@@ -17,12 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -208,22 +206,25 @@ fun HistoryScreen(
 // ── Top bar ────────────────────────────────────────────────────────────────────
 @Composable
 private fun HistoryTopBar() {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(AppCardBg)
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Menu, contentDescription = null, tint = AppGreen, modifier = Modifier.size(24.dp))
-        Text("History", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = AppGreen)
-        Box(
-            modifier         = Modifier.size(36.dp).background(AppGreenLight, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Default.Person, contentDescription = null, tint = AppGreen, modifier = Modifier.size(20.dp))
-        }
+        Icon(
+            imageVector = Icons.Default.Menu,
+            contentDescription = null,
+            tint = AppGreen,
+            modifier = Modifier.align(Alignment.CenterStart).size(24.dp),
+        )
+        Text(
+            text = "History",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = AppGreen,
+            modifier = Modifier.align(Alignment.Center),
+        )
     }
 }
 
@@ -276,13 +277,6 @@ private fun HistoryCard(
         SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()).format(Date(entity.evaluatedAt))
     }
 
-    val initials = remember(entity.studentName) {
-        entity.studentName.trim().split(" ")
-            .filter { it.isNotBlank() }.take(2)
-            .joinToString("") { it.first().uppercaseChar().toString() }
-            .ifBlank { "?" }
-    }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -297,17 +291,6 @@ private fun HistoryCard(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-
-            // Initials avatar
-            Box(
-                modifier         = Modifier.size(48.dp).background(AppGreenLight, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(initials, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = AppGreen)
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(
                     text       = entity.studentName.ifBlank { "Unknown" },

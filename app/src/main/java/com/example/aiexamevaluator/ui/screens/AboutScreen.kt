@@ -23,7 +23,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -319,22 +318,13 @@ private fun FeatureRow(text: String) {
 private fun TeamMemberRow(role: String, name: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = role, color = LightText, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(2.dp))
             Text(text = name, color = DarkText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        }
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(LightGreen),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(Icons.Default.Person, contentDescription = null, tint = PrimaryGreen)
         }
     }
     HorizontalDivider(color = BorderColor.copy(alpha = 0.6f))
