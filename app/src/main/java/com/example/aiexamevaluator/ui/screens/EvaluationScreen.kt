@@ -122,10 +122,7 @@ fun EvaluationScreen(
             rollNumber        = resultRollNumber,
             totalMarks        = resultTotalMarks,
             result            = resultData!!,
-            onEvaluateAnother = {
-                showResult = false
-                resultData = null
-            },
+            onEvaluateAnother = onBackClick,
         )
         return
     }

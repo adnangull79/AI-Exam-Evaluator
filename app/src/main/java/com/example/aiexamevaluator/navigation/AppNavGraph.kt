@@ -1,6 +1,8 @@
 package com.example.aiexamevaluator.navigation
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -8,8 +10,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.aiexamevaluator.data.local.EvaluationHistoryEntity
+import com.example.aiexamevaluator.ui.screens.EditProfileScreen
 import com.example.aiexamevaluator.ui.screens.EvaluationScreen
+import com.example.aiexamevaluator.ui.screens.AboutScreen
 import com.example.aiexamevaluator.ui.screens.HomeScreen
+import com.example.aiexamevaluator.ui.screens.FaqScreen
 import com.example.aiexamevaluator.ui.screens.HistoryScreen
 import com.example.aiexamevaluator.ui.screens.ResultScreen
 import com.example.aiexamevaluator.ui.screens.SettingsScreen
@@ -50,14 +55,48 @@ fun AppNavGraph() {
     var currentScreen by remember {
         mutableStateOf("splash")
     }
+    var resultSource by remember {
+        mutableStateOf("evaluation")
+    }
 
     // Selected history entity for detail view
     var selectedEntity by remember { mutableStateOf<EvaluationHistoryEntity?>(null) }
 
     val context = LocalContext.current
+    val activity = context as? Activity
     val viewModel: EvaluationViewModel = viewModel(
         factory = EvaluationViewModelFactory(context)
     )
+
+    BackHandler {
+        when (currentScreen) {
+            "splash" -> Unit
+
+            "welcome" -> activity?.finish()
+
+            "auth" -> currentScreen = "welcome"
+
+            "login" -> currentScreen = "auth"
+
+            "signup" -> currentScreen = "auth"
+
+            "home" -> activity?.finish()
+
+            "evaluation" -> currentScreen = "home"
+
+            "history" -> currentScreen = "home"
+
+            "settings" -> currentScreen = "home"
+
+            "history_detail" -> currentScreen = "history"
+
+            "about" -> currentScreen = "settings"
+
+            "faq" -> currentScreen = "settings"
+
+            else -> Unit
+        }
+    }
 
     when (currentScreen) {
 
@@ -95,7 +134,10 @@ fun AppNavGraph() {
         )
 
         "home" -> HomeScreen(
-            onStartEvaluationClick = { currentScreen = "evaluation" },
+            onStartEvaluationClick = {
+                resultSource = "evaluation"
+                currentScreen = "evaluation"
+            },
             onHistoryClick         = { currentScreen = "history" },
             onSettingsClick        = { currentScreen = "settings" },
         )
@@ -107,10 +149,14 @@ fun AppNavGraph() {
 
         "history" -> HistoryScreen(
             viewModel         = viewModel,
-            onStartEvaluation = { currentScreen = "evaluation" },
+            onStartEvaluation = {
+                resultSource = "evaluation"
+                currentScreen = "evaluation"
+            },
             onHomeClick       = { currentScreen = "home" },
             onSettingsClick   = { currentScreen = "settings" },
             onCardClick       = { entity ->
+                resultSource = "history"
                 selectedEntity = entity
                 currentScreen  = "history_detail"
             }
@@ -132,8 +178,26 @@ fun AppNavGraph() {
 
         "settings" -> SettingsScreen(
             onHistoryClick = { currentScreen = "history" },
-            onStartEvaluationClick = { currentScreen = "evaluation" },
-            onSettingsClick = { }
+            onStartEvaluationClick = {
+                resultSource = "evaluation"
+                currentScreen = "evaluation"
+            },
+            onSettingsClick = { },
+            onAboutClick = { currentScreen = "about" },
+            onFaqClick = { currentScreen = "faq" },
+            onEditProfileClick = { currentScreen = "edit_profile" },
+        )
+
+        "about" -> AboutScreen(
+            onBackClick = { currentScreen = "settings" }
+        )
+
+        "faq" -> FaqScreen(
+            onBackClick = { currentScreen = "settings" }
+        )
+
+        "edit_profile" -> EditProfileScreen(
+            onBackClick = { currentScreen = "settings" }
         )
 
         else -> currentScreen = "home"

@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReportProblem
-import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -73,6 +72,9 @@ fun SettingsScreen(
     onHistoryClick        : () -> Unit,
     onStartEvaluationClick: () -> Unit,
     onSettingsClick       : () -> Unit,
+    onAboutClick          : () -> Unit,
+    onFaqClick            : () -> Unit,
+    onEditProfileClick    : () -> Unit,
 ) {
     val options = listOf(
         SettingsOption("Edit Profile",       "Update your personal information",  Icons.Default.Edit),
@@ -80,7 +82,6 @@ fun SettingsScreen(
         SettingsOption("About ExamEval AI",  "Learn more about this app",         Icons.Default.Info),
         SettingsOption("FAQs",               "Frequently asked questions",        Icons.AutoMirrored.Filled.HelpOutline),
         SettingsOption("Report a Problem",   "Tell us about an issue",            Icons.Default.ReportProblem),
-        SettingsOption("Review Us",          "Rate your experience",              Icons.Default.StarRate),
     )
 
     Scaffold(
@@ -146,11 +147,17 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         options.forEachIndexed { index, option ->
+                            val optionClick: () -> Unit = when (option.title) {
+                                "Edit Profile" -> onEditProfileClick
+                                "About ExamEval AI" -> onAboutClick
+                                "FAQs" -> onFaqClick
+                                else -> ({ })
+                            }
                             SettingsOptionItem(
                                 title       = option.title,
                                 subtitle    = option.subtitle,
                                 icon        = option.icon,
-                                onClick     = { },
+                                onClick     = optionClick,
                                 showDivider = index != options.lastIndex,
                             )
                         }
@@ -463,6 +470,9 @@ private fun SettingsScreenPreview() {
             onHistoryClick         = { },
             onStartEvaluationClick = { },
             onSettingsClick        = { },
+            onAboutClick           = { },
+            onFaqClick             = { },
+            onEditProfileClick     = { },
         )
     }
 }
