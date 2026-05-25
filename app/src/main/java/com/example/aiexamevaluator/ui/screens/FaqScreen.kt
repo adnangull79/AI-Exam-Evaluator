@@ -96,7 +96,7 @@ fun FaqScreen(
     )
 
     Scaffold(
-        containerColor = Color(0xFFF5F7F6),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = { FaqTopBar(onBackClick = onBackClick) },
     ) { innerPadding ->
         LazyColumn(
@@ -120,7 +120,7 @@ private fun FaqTopBar(onBackClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CardBg)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -138,7 +138,7 @@ private fun FaqTopBar(onBackClick: () -> Unit) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = PrimaryGreen,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
 
@@ -146,7 +146,7 @@ private fun FaqTopBar(onBackClick: () -> Unit) {
             text = "Frequently Asked Questions",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = PrimaryGreen,
+            color = MaterialTheme.colorScheme.primary,
         )
 
         Spacer(modifier = Modifier.size(40.dp))
@@ -162,7 +162,7 @@ private fun FaqCard(item: FaqItem) {
             .fillMaxWidth()
             .animateContentSize(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(
@@ -183,7 +183,7 @@ private fun FaqCard(item: FaqItem) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = item.question,
-                        color = DarkText,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -199,7 +199,7 @@ private fun FaqCard(item: FaqItem) {
                     Icon(
                         imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = null,
-                        tint = PrimaryGreen,
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -207,7 +207,7 @@ private fun FaqCard(item: FaqItem) {
             if (expanded) {
                 Text(
                     text = item.answer,
-                    color = LightText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp,
                     lineHeight = 21.sp,
                 )

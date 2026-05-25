@@ -30,7 +30,7 @@ fun AuthSelectionScreen(
     val subText = Color(0xFF667085)
 
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
 
         Box(
@@ -40,21 +40,21 @@ fun AuthSelectionScreen(
         ) {
 
             // Background circles
-            Box(
-                modifier = Modifier
-                    .size(220.dp)
-                    .offset(x = (-120).dp, y = (-40).dp)
-                    .clip(CircleShape)
-                    .background(lightGreen.copy(alpha = 0.4f))
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(180.dp)
-                    .offset(x = 260.dp, y = 420.dp)
-                    .clip(CircleShape)
-                    .background(lightGreen.copy(alpha = 0.3f))
-            )
+//            Box(
+//                modifier = Modifier
+//                    .size(220.dp)
+//                    .offset(x = (-120).dp, y = (-40).dp)
+//                    .clip(CircleShape)
+//                    .background(lightGreen.copy(alpha = 0.4f))
+//            )
+//
+//            Box(
+//                modifier = Modifier
+//                    .size(180.dp)
+//                    .offset(x = 260.dp, y = 420.dp)
+//                    .clip(CircleShape)
+//                    .background(lightGreen.copy(alpha = 0.3f))
+//            )
 
             Column(
                 modifier = Modifier

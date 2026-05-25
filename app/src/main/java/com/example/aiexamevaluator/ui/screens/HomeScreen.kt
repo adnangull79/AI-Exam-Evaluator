@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -78,7 +79,7 @@ fun UnifiedBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
-                .background(AppCardBg)
+                .background(MaterialTheme.colorScheme.surface)
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 32.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -93,7 +94,7 @@ fun UnifiedBottomBar(
                 Icon(
                     imageVector        = Icons.Default.Menu,
                     contentDescription = null,
-                    tint               = if (activeTab == BottomTab.HISTORY) AppGreen else AppGray,
+                    tint               = if (activeTab == BottomTab.HISTORY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier           = Modifier.size(22.dp)
                 )
             }
@@ -110,7 +111,7 @@ fun UnifiedBottomBar(
                 Icon(
                     imageVector        = Icons.Default.Settings,
                     contentDescription = null,
-                    tint               = if (activeTab == BottomTab.SETTINGS) AppGreen else AppGray,
+                    tint               = if (activeTab == BottomTab.SETTINGS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier           = Modifier.size(22.dp)
                 )
             }
@@ -121,7 +122,7 @@ fun UnifiedBottomBar(
             modifier = Modifier
                 .size(62.dp)
                 .offset(y = (-14).dp)
-                .background(AppFabColor, CircleShape)
+                .background(MaterialTheme.colorScheme.primary, CircleShape)
                 .clickable(
                     interactionSource = fabInteractionSource,
                     indication = null
@@ -143,7 +144,7 @@ fun UnifiedBottomBar(
         Text(
             text      = "Start Evaluation",
             fontSize  = 10.sp,
-            color     = AppGray,
+            color     = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier  = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 8.dp)
@@ -178,7 +179,7 @@ private fun NavTabItem(
         Text(
             text       = label,
             fontSize   = 11.sp,
-            color      = if (active) AppGreen else AppGray,
+            color      = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal
         )
     }
@@ -194,7 +195,7 @@ fun HomeScreen(
     onSettingsClick       : () -> Unit,
     modifier              : Modifier = Modifier,
 ) {
-    val secondaryText = Color(0xFF7A7A7A)
+    val secondaryText = MaterialTheme.colorScheme.onSurfaceVariant
 
     Scaffold(
         topBar         = { HomeTopBar() },
@@ -206,7 +207,7 @@ fun HomeScreen(
                 onSettingsClick= onSettingsClick
             )
         },
-        containerColor = Color(0xFFF5F7F6),
+        containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         Column(
             modifier = modifier
@@ -240,12 +241,12 @@ fun HomeScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(AppGreenLight, RoundedCornerShape(50))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f), RoundedCornerShape(50))
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                     ) {
                         Text(
                             text       = "Powered by AI",
-                            color      = AppGreen,
+                            color      = MaterialTheme.colorScheme.primary,
                             fontSize   = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                         )
@@ -259,7 +260,7 @@ fun HomeScreen(
                         textAlign  = TextAlign.Center,
                         fontSize   = 26.sp,
                         fontWeight = FontWeight.Bold,
-                        color      = AppGreen,
+                        color      = MaterialTheme.colorScheme.primary,
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -269,7 +270,7 @@ fun HomeScreen(
                         modifier  = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         fontSize  = 14.sp,
-                        color     = secondaryText,
+                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -278,7 +279,7 @@ fun HomeScreen(
                         onClick  = onStartEvaluationClick,
                         modifier = Modifier.fillMaxWidth().height(54.dp),
                         shape    = RoundedCornerShape(50.dp),
-                        colors   = ButtonDefaults.buttonColors(containerColor = AppGreen),
+                        colors   = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     ) {
                         Text(
                             text       = "Start Evaluating →",
@@ -293,7 +294,7 @@ fun HomeScreen(
 
             Text(
                 text       = "CORE CAPABILITIES",
-                color      = AppGreen,
+                color      = MaterialTheme.colorScheme.primary,
                 fontSize   = 12.sp,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -318,18 +319,13 @@ private fun HomeTopBar() {
             .fillMaxWidth()
             .padding(16.dp),
     ) {
-        Icon(
-            imageVector = Icons.Default.Menu,
-            contentDescription = null,
-            tint = AppGreen,
-            modifier = Modifier.align(Alignment.CenterStart),
-        )
+
 
         Text(
             text = "ExamEval AI",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            color = AppGreen,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.align(Alignment.Center),
         )
     }
@@ -346,16 +342,16 @@ private fun CapabilityCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, AppBorder, RoundedCornerShape(16.dp))
-            .background(AppCardBg, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = icon, fontSize = 26.sp, modifier = Modifier.size(26.dp))
         Spacer(modifier = Modifier.width(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(text = title,    color = AppGreen,       fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = subtitle, color = secondaryText,  fontSize = 12.sp)
+            Text(text = title,    color = MaterialTheme.colorScheme.onSurface,       fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant,  fontSize = 12.sp)
         }
     }
 }

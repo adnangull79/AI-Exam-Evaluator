@@ -26,15 +26,15 @@ fun WelcomeScreen(
     onGetStarted: () -> Unit
 ) {
 
-    val primaryGreen = Color(0xFF0D6B3C)
-    val lightGreen = Color(0xFFEAF6EE)
-    val darkText = Color(0xFF1F2937)
-    val subText = Color(0xFF6B7280)
+    val primaryGreen = MaterialTheme.colorScheme.primary
+    val lightGreen = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+    val darkText = MaterialTheme.colorScheme.onSurface
+    val subText = MaterialTheme.colorScheme.onSurfaceVariant
 
     // Logo is loaded from drawable resources: R.drawable.exameval_logo
 
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
 
         Column(
@@ -88,7 +88,7 @@ fun WelcomeScreen(
 
             Text(
                 text = "Smart evaluation for a smarter tomorrow.\nEvaluate MCQ and subjective answer sheets\naccurately and effortlessly.",
-                color = subText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp
@@ -108,14 +108,6 @@ fun WelcomeScreen(
                     primaryGreen = primaryGreen,
                     lightGreen = lightGreen
                 )
-
-                Box(
-                    modifier = Modifier
-                        .height(90.dp)
-                        .width(1.dp)
-                        .background(Color(0xFFE5E7EB))
-                )
-
                 FeatureItem(
                     title = "Save Time\nEffortlessly",
                     subtitle = "Evaluate more in",
@@ -226,7 +218,7 @@ fun FeatureItem(
 
         Text(
             text = subtitle,
-            color = Color(0xFF6B7280),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 11.sp,
             lineHeight = 14.sp,
             textAlign = TextAlign.Center

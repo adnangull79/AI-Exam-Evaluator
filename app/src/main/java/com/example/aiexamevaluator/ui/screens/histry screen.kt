@@ -1,6 +1,9 @@
 package com.example.aiexamevaluator.ui.screens
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,12 +23,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,14 +58,6 @@ import java.util.Locale
 @Composable
 private fun rememberSafeInteractionSource() = remember { MutableInteractionSource() }
 
-// ── Local colours ──────────────────────────────────────────────────────────────
-private val PageBg    = Color(0xFFF5F7F6)
-private val TextDark  = Color(0xFF1A1A1A)
-private val TrackGray = Color(0xFFE0E0E0)
-
-// ── Filter tab enum ────────────────────────────────────────────────────────────
-private enum class HistoryTab { ALL, SUBJECTIVE, MCQ }
-
 // ──────────────────────────────────────────────────────────────────────────────
 // HistoryScreen
 // ──────────────────────────────────────────────────────────────────────────────
@@ -73,24 +71,54 @@ fun HistoryScreen(
     modifier         : Modifier = Modifier,
 ) {
     val historyList by viewModel.historyList.collectAsState()
-    val filterInteractionSource = rememberSafeInteractionSource()
 
     var searchQuery by remember { mutableStateOf("") }
-    var activeTab   by remember { mutableStateOf(HistoryTab.ALL) }
+    var isSelectionMode by remember { mutableStateOf(false) }
+    var selectedItems by remember { mutableStateOf(setOf<Int>()) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
-    val filtered = remember(historyList, activeTab, searchQuery) {
+    val filtered = remember(historyList, searchQuery) {
         historyList.filter { entity ->
             entity.studentName.contains(searchQuery.trim(), ignoreCase = true)
         }
     }
 
+    fun toggleSelection(entityId: Int) {
+        selectedItems = if (selectedItems.contains(entityId)) {
+            selectedItems - entityId
+        } else {
+            selectedItems + entityId
+        }
+        if (selectedItems.isEmpty()) {
+            isSelectionMode = false
+        }
+    }
+
+    fun enterSelectionMode(entityId: Int) {
+        isSelectionMode = true
+        selectedItems = selectedItems + entityId
+    }
+
+    BackHandler(enabled = isSelectionMode) {
+        selectedItems = emptySet()
+        isSelectionMode = false
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(PageBg)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Top bar
-        HistoryTopBar()
+        HistoryTopBar(
+            isSelectionMode = isSelectionMode,
+            selectedCount = selectedItems.size,
+            onDeleteSelected = { showDeleteDialog = true },
+            onCancelSelection = {
+                selectedItems = emptySet()
+                isSelectionMode = false
+            }
+        )
 
         // Scrollable body
         Column(
@@ -100,59 +128,30 @@ fun HistoryScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Search + Filter row
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value         = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    modifier      = Modifier.weight(1f),
-                    placeholder   = { Text("Search by student name", fontSize = 13.sp, color = AppGray) },
-                    leadingIcon   = {
-                        Icon(Icons.Default.Search, contentDescription = null, tint = AppGray, modifier = Modifier.size(18.dp))
-                    },
-                    singleLine    = true,
-                    shape         = RoundedCornerShape(12.dp),
-                    colors        = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor   = AppGreen,
-                        unfocusedBorderColor = AppBorder,
-                        focusedTextColor     = TextDark,
-                        unfocusedTextColor   = TextDark,
-                        cursorColor          = AppGreen,
-                    )
+            OutlinedTextField(
+                value         = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier      = Modifier.fillMaxWidth(),
+                placeholder   = { Text("Search by student name", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                leadingIcon   = {
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                },
+                singleLine    = true,
+                shape         = RoundedCornerShape(12.dp),
+                colors        = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor   = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedTextColor     = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor   = MaterialTheme.colorScheme.onSurface,
+                    cursorColor          = MaterialTheme.colorScheme.primary,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Box(
-                    modifier = Modifier
-                        .height(56.dp)
-                        .background(AppCardBg, RoundedCornerShape(12.dp))
-                        .border(1.dp, AppBorder, RoundedCornerShape(12.dp))
-                        .clickable(
-                            interactionSource = filterInteractionSource,
-                            indication        = null
-                        ) { }
-                        .padding(horizontal = 14.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Filter", fontSize = 13.sp, color = TextDark, fontWeight = FontWeight.Medium)
-                }
-            }
-
-            // Filter tabs
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(AppCardBg, RoundedCornerShape(12.dp))
-                    .border(1.dp, AppBorder, RoundedCornerShape(12.dp))
-            ) {
-                HistoryTabItem("All Evaluations", activeTab == HistoryTab.ALL,        Modifier.weight(1f)) { activeTab = HistoryTab.ALL }
-                Box(modifier = Modifier.width(1.dp).height(44.dp).background(AppBorder))
-                HistoryTabItem("Subjective",      activeTab == HistoryTab.SUBJECTIVE, Modifier.weight(1f)) { activeTab = HistoryTab.SUBJECTIVE }
-                Box(modifier = Modifier.width(1.dp).height(44.dp).background(AppBorder))
-                HistoryTabItem("MCQ",             activeTab == HistoryTab.MCQ,        Modifier.weight(1f)) { activeTab = HistoryTab.MCQ }
-            }
+            )
 
             // Section header
             Row(
@@ -160,8 +159,8 @@ fun HistoryScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                Text("Recent Evaluations", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AppGreen)
-                Text("Latest First",       fontSize = 12.sp, color = AppGray)
+                Text("Recent Evaluations", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
+                Text("Latest First",       fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             // List or empty state
@@ -175,7 +174,7 @@ fun HistoryScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text  = if (searchQuery.isBlank()) "No evaluations yet." else "No results found.",
-                            color = AppGray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp
                         )
                     }
@@ -184,8 +183,16 @@ fun HistoryScreen(
                 filtered.forEach { entity ->
                     HistoryCard(
                         entity      = entity,
-                        onDelete    = { viewModel.deleteHistory(entity) },
-                        onCardClick = { onCardClick(entity) }
+                        isSelected  = selectedItems.contains(entity.id),
+                        selectionMode = isSelectionMode,
+                        onLongPress = { enterSelectionMode(entity.id) },
+                        onCardClick = {
+                            if (isSelectionMode) {
+                                toggleSelection(entity.id)
+                            } else {
+                                onCardClick(entity)
+                            }
+                        }
                     )
                 }
             }
@@ -201,73 +208,112 @@ fun HistoryScreen(
             onSettingsClick = onSettingsClick
         )
     }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(text = "Delete Evaluations?") },
+            text = { Text(text = "Are you sure you want to delete the selected evaluations?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectedItems.forEach { id ->
+                            historyList.find { it.id == id }?.let { viewModel.deleteHistory(it) }
+                        }
+                        selectedItems = emptySet()
+                        isSelectionMode = false
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text(text = "Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
 }
 
 // ── Top bar ────────────────────────────────────────────────────────────────────
 @Composable
-private fun HistoryTopBar() {
+private fun HistoryTopBar(
+    isSelectionMode: Boolean,
+    selectedCount: Int,
+    onDeleteSelected: () -> Unit,
+    onCancelSelection: () -> Unit,
+) {
+    val leftInteractionSource = rememberSafeInteractionSource()
+    val rightInteractionSource = rememberSafeInteractionSource()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppCardBg)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
-        Icon(
-            imageVector = Icons.Default.Menu,
-            contentDescription = null,
-            tint = AppGreen,
-            modifier = Modifier.align(Alignment.CenterStart).size(24.dp),
-        )
+        if (isSelectionMode) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.CenterStart)
+                    .clickable(
+                        interactionSource = leftInteractionSource,
+                        indication = null
+                    ) {
+                        onCancelSelection()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+        }
         Text(
-            text = "History",
+            text = if (isSelectionMode) "$selectedCount Selected" else "History",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = AppGreen,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.align(Alignment.Center),
         )
-    }
-}
 
-// ── Filter tab item ────────────────────────────────────────────────────────────
-@Composable
-private fun HistoryTabItem(
-    text    : String,
-    active  : Boolean,
-    modifier: Modifier,
-    onClick : () -> Unit,
-) {
-    // FIX: removed stray `cardInteractionSource` declaration that was leaking out of scope here
-    val tabInteractionSource = rememberSafeInteractionSource()
-
-    Box(
-        modifier = modifier
-            .background(if (active) AppGreen else Color.Transparent, RoundedCornerShape(11.dp))
-            .clickable(
-                interactionSource = tabInteractionSource,
-                indication        = null
-            ) { onClick() }
-            .padding(vertical = 12.dp, horizontal = 4.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text       = text,
-            fontSize   = 12.sp,
-            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
-            color      = if (active) Color.White else AppGray,
-            maxLines   = 1
-        )
+        if (isSelectionMode) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.CenterEnd)
+                    .clickable(
+                        interactionSource = rightInteractionSource,
+                        indication = null
+                    ) {
+                        onDeleteSelected()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete selected",
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
     }
-    // FIX: removed the stray `val cardInteractionSource = rememberSafeInteractionSource()`
-    // that was incorrectly placed here outside any composable scope
 }
 
 // ── History card — tappable ────────────────────────────────────────────────────
 @Composable
 private fun HistoryCard(
-    // FIX: restored correct function signature — entity param was missing,
-    // and a floating .clickable block was incorrectly placed before the params
     entity     : EvaluationHistoryEntity,
-    onDelete   : () -> Unit,
+    isSelected : Boolean,
+    selectionMode: Boolean,
+    onLongPress: () -> Unit,
     onCardClick: () -> Unit,
 ) {
     val percent = if (entity.totalMarks > 0)
@@ -280,12 +326,27 @@ private fun HistoryCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppCardBg, RoundedCornerShape(16.dp))
-            .border(1.dp, AppBorder, RoundedCornerShape(16.dp))
-            .clickable(
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface,
+                RoundedCornerShape(16.dp)
+            )
+            .border(
+                1.dp,
+                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                RoundedCornerShape(16.dp)
+            )
+            .combinedClickable(
                 interactionSource = rememberSafeInteractionSource(),
-                indication        = null
-            ) { onCardClick() }
+                indication = null,
+                onClick = {
+                    if (selectionMode) {
+                        onCardClick()
+                    } else {
+                        onCardClick()
+                    }
+                },
+                onLongClick = onLongPress
+            )
             .padding(14.dp),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -296,21 +357,21 @@ private fun HistoryCard(
                     text       = entity.studentName.ifBlank { "Unknown" },
                     fontWeight = FontWeight.Bold,
                     fontSize   = 14.sp,
-                    color      = TextDark,
+                    color      = MaterialTheme.colorScheme.onSurface,
                     maxLines   = 1,
                     overflow   = TextOverflow.Ellipsis
                 )
                 if (entity.rollNumber.isNotBlank()) {
                     Box(
                         modifier = Modifier
-                            .background(AppGreenLight, RoundedCornerShape(50))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(50))
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                     ) {
-                        Text("Roll: ${entity.rollNumber}", fontSize = 10.sp, color = AppGreen, fontWeight = FontWeight.Medium)
+                        Text("Roll: ${entity.rollNumber}", fontSize = 10.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                     }
                 }
-                Text(dateStr, fontSize = 11.sp, color = AppGray, maxLines = 1)
-                Text("Confidence: ${entity.confidenceScore}%", fontSize = 11.sp, color = AppGray)
+                Text(dateStr, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                Text("Confidence: ${entity.confidenceScore}%", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -321,7 +382,7 @@ private fun HistoryCard(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             MiniScoreRing(percent = percent, obtained = entity.totalObtained, total = entity.totalMarks)
-            Text("›", fontSize = 20.sp, color = AppGray)
+            Text("›", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -330,10 +391,11 @@ private fun HistoryCard(
 @Composable
 private fun MiniScoreRing(percent: Float, obtained: Int, total: Int) {
     val ringColor = when {
-        percent >= 75f -> AppGreen
+        percent >= 75f -> MaterialTheme.colorScheme.primary
         percent >= 50f -> Color(0xFFE65100)
         else           -> Color(0xFFC62828)
     }
+    val trackColor = MaterialTheme.colorScheme.outlineVariant
     val sweep = (percent / 100f) * 360f
 
     Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
@@ -343,7 +405,7 @@ private fun MiniScoreRing(percent: Float, obtained: Int, total: Int) {
             val tl       = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
             val sz       = Size(diameter, diameter)
             drawArc(
-                color       = TrackGray,
+                color       = trackColor,
                 startAngle  = -90f,
                 sweepAngle  = 360f,
                 useCenter   = false,
@@ -362,8 +424,8 @@ private fun MiniScoreRing(percent: Float, obtained: Int, total: Int) {
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("${percent.toInt()}%", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = ringColor)
-            Text("$obtained / $total", fontSize = 9.sp, color = AppGray)
+            Text("${percent.toInt()}%", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
+            Text("$obtained / $total", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

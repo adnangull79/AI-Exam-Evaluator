@@ -41,10 +41,10 @@ fun LoginScreen(
 ) {
     val uiState by authViewModel.uiState.collectAsState()
 
-    val primaryGreen = Color(0xFF0D6B3C)
-    val lightGreen = Color(0xFFEAF6EE)
-    val darkText = Color(0xFF1F2937)
-    val subText = Color(0xFF667085)
+    val primaryGreen = MaterialTheme.colorScheme.primary
+    val lightGreen = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+    val darkText = MaterialTheme.colorScheme.onSurface
+    val subText = MaterialTheme.colorScheme.onSurfaceVariant
 
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -60,7 +60,7 @@ fun LoginScreen(
     }
 
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
 
         Box(
@@ -69,22 +69,22 @@ fun LoginScreen(
                 .padding(padding)
         ) {
 
-            // Background decoration
-            Box(
-                modifier = Modifier
-                    .size(220.dp)
-                    .offset(x = (-120).dp, y = (-40).dp)
-                    .clip(CircleShape)
-                    .background(lightGreen.copy(alpha = 0.35f))
-            )
+//            // Background decoration
+//            Box(
+//                modifier = Modifier
+//                    .size(220.dp)
+//                    .offset(x = (-120).dp, y = (-40).dp)
+//                    .clip(CircleShape)
+//                    .background(lightGreen.copy(alpha = 0.35f))
+//            )
 
-            Box(
-                modifier = Modifier
-                    .size(180.dp)
-                    .offset(x = 260.dp, y = 620.dp)
-                    .clip(CircleShape)
-                    .background(lightGreen.copy(alpha = 0.25f))
-            )
+//            Box(
+//                modifier = Modifier
+//                    .size(180.dp)
+//                    .offset(x = 260.dp, y = 620.dp)
+//                    .clip(CircleShape)
+//                    .background(lightGreen.copy(alpha = 0.25f))
+//            )
 
             Column(
                 modifier = Modifier
@@ -163,7 +163,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.surface
                     ),
                     elevation = CardDefaults.cardElevation(
                         defaultElevation = 8.dp
@@ -204,20 +204,7 @@ fun LoginScreen(
                             shape = RoundedCornerShape(18.dp),
                             singleLine = true,
 
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = primaryGreen,
-                                unfocusedTextColor = primaryGreen,
-                                cursorColor = primaryGreen,
-
-                                focusedBorderColor = primaryGreen,
-                                unfocusedBorderColor = primaryGreen.copy(alpha = 0.6f),
-
-                                focusedLeadingIconColor = primaryGreen,
-                                unfocusedLeadingIconColor = primaryGreen.copy(alpha = 0.6f),
-
-                                focusedPlaceholderColor = primaryGreen.copy(alpha = 0.5f),
-                                unfocusedPlaceholderColor = primaryGreen.copy(alpha = 0.4f)
-                            )
+                            colors = loginFieldColors()
                         )
 
                         Spacer(modifier = Modifier.height(18.dp))
@@ -275,23 +262,7 @@ fun LoginScreen(
                             shape = RoundedCornerShape(18.dp),
                             singleLine = true,
 
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = primaryGreen,
-                                unfocusedTextColor = primaryGreen,
-                                cursorColor = primaryGreen,
-
-                                focusedBorderColor = primaryGreen,
-                                unfocusedBorderColor = primaryGreen.copy(alpha = 0.6f),
-
-                                focusedLeadingIconColor = primaryGreen,
-                                unfocusedLeadingIconColor = primaryGreen.copy(alpha = 0.6f),
-
-                                focusedTrailingIconColor = primaryGreen,
-                                unfocusedTrailingIconColor = primaryGreen.copy(alpha = 0.6f),
-
-                                focusedPlaceholderColor = primaryGreen.copy(alpha = 0.5f),
-                                unfocusedPlaceholderColor = primaryGreen.copy(alpha = 0.4f)
-                            )
+                            colors = loginFieldColors()
                         )
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -412,3 +383,20 @@ fun LoginScreen(
         }
     }
 }
+
+@Composable
+private fun loginFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+)

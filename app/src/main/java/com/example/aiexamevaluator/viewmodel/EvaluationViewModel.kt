@@ -144,6 +144,16 @@ class EvaluationViewModel(
         }
     }
 
+    fun deleteAllHistory() {
+        viewModelScope.launch {
+            try {
+                historyRepository.deleteAllHistory()
+            } catch (_: Exception) {
+                // Safe fail
+            }
+        }
+    }
+
     private fun resolveApplicationContext(): Context? {
         return runCatching {
             val activityThreadClass = Class.forName("android.app.ActivityThread")

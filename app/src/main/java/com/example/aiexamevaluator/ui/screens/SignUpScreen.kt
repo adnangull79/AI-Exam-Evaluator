@@ -41,10 +41,10 @@ fun SignUpScreen(
     onLoginClick: () -> Unit
 ) {
 
-    val primaryGreen = Color(0xFF0D6B3C)
-    val lightGreen = Color(0xFFEAF6EE)
-    val darkText = Color(0xFF1F2937)
-    val subText = Color(0xFF0D6B3C)
+    val primaryGreen = MaterialTheme.colorScheme.primary
+    val lightGreen = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+    val darkText = MaterialTheme.colorScheme.onSurface
+    val subText = MaterialTheme.colorScheme.onSurfaceVariant
 
     var fullName by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
@@ -64,7 +64,7 @@ fun SignUpScreen(
     }
 
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
 
         Box(
@@ -74,21 +74,21 @@ fun SignUpScreen(
         ) {
 
             // Decorative background
-            Box(
-                modifier = Modifier
-                    .size(220.dp)
-                    .offset(x = (-120).dp, y = (-40).dp)
-                    .clip(CircleShape)
-                    .background(lightGreen.copy(alpha = 0.35f))
-            )
+//            Box(
+//                modifier = Modifier
+//                    .size(220.dp)
+//                    .offset(x = (-120).dp, y = (-40).dp)
+//                    .clip(CircleShape)
+//                    .background(lightGreen.copy(alpha = 0.35f))
+//            )
 
-            Box(
-                modifier = Modifier
-                    .size(180.dp)
-                    .offset(x = 260.dp, y = 620.dp)
-                    .clip(CircleShape)
-                    .background(lightGreen.copy(alpha = 0.25f))
-            )
+//            Box(
+//                modifier = Modifier
+//                    .size(180.dp)
+//                    .offset(x = 260.dp, y = 620.dp)
+//                    .clip(CircleShape)
+//                    .background(lightGreen.copy(alpha = 0.25f))
+//            )
 
             Column(
                 modifier = Modifier
@@ -165,7 +165,7 @@ fun SignUpScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.surface
                     ),
                     elevation = CardDefaults.cardElevation(
                         defaultElevation = 8.dp
@@ -200,17 +200,7 @@ fun SignUpScreen(
                                     contentDescription = null
                                 )
                             },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = primaryGreen,
-                                unfocusedTextColor = primaryGreen,
-                                cursorColor = primaryGreen,
-                                focusedBorderColor = primaryGreen,
-                                unfocusedBorderColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedLeadingIconColor = primaryGreen,
-                                unfocusedLeadingIconColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedPlaceholderColor = primaryGreen.copy(alpha = 0.5f),
-                                unfocusedPlaceholderColor = primaryGreen.copy(alpha = 0.4f)
-                            ),
+                            colors = signUpFieldColors(),
                             shape = RoundedCornerShape(18.dp),
                             singleLine = true
                         )
@@ -242,17 +232,7 @@ fun SignUpScreen(
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Email
                             ),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = primaryGreen,
-                                unfocusedTextColor = primaryGreen,
-                                cursorColor = primaryGreen,
-                                focusedBorderColor = primaryGreen,
-                                unfocusedBorderColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedLeadingIconColor = primaryGreen,
-                                unfocusedLeadingIconColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedPlaceholderColor = primaryGreen.copy(alpha = 0.5f),
-                                unfocusedPlaceholderColor = primaryGreen.copy(alpha = 0.4f)
-                            ),
+                            colors = signUpFieldColors(),
                             shape = RoundedCornerShape(18.dp),
                             singleLine = true
                         )
@@ -298,19 +278,7 @@ fun SignUpScreen(
                                     )
                                 }
                             },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = primaryGreen,
-                                unfocusedTextColor = primaryGreen,
-                                cursorColor = primaryGreen,
-                                focusedBorderColor = primaryGreen,
-                                unfocusedBorderColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedLeadingIconColor = primaryGreen,
-                                unfocusedLeadingIconColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedTrailingIconColor = primaryGreen,
-                                unfocusedTrailingIconColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedPlaceholderColor = primaryGreen.copy(alpha = 0.5f),
-                                unfocusedPlaceholderColor = primaryGreen.copy(alpha = 0.4f)
-                            ),
+                            colors = signUpFieldColors(),
                             visualTransformation =
                             if (passwordVisible)
                                 VisualTransformation.None
@@ -365,19 +333,7 @@ fun SignUpScreen(
                                     )
                                 }
                             },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = primaryGreen,
-                                unfocusedTextColor = primaryGreen,
-                                cursorColor = primaryGreen,
-                                focusedBorderColor = primaryGreen,
-                                unfocusedBorderColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedLeadingIconColor = primaryGreen,
-                                unfocusedLeadingIconColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedTrailingIconColor = primaryGreen,
-                                unfocusedTrailingIconColor = primaryGreen.copy(alpha = 0.6f),
-                                focusedPlaceholderColor = primaryGreen.copy(alpha = 0.5f),
-                                unfocusedPlaceholderColor = primaryGreen.copy(alpha = 0.4f)
-                            ),
+                            colors = signUpFieldColors(),
                             visualTransformation =
                             if (confirmPasswordVisible)
                                 VisualTransformation.None
@@ -515,3 +471,20 @@ fun PasswordRule(
         fontWeight = FontWeight.Medium
     )
 }
+
+@Composable
+private fun signUpFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+)

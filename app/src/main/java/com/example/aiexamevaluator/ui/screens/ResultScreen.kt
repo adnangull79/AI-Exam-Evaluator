@@ -28,6 +28,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,17 +65,14 @@ private fun rememberSafeInteractionSource() = remember { MutableInteractionSourc
 // ── Colours ────────────────────────────────────────────────────────────────────
 private val Green       = Color(0xFF1B5E3C)
 private val GreenLight  = Color(0xFFE8F5E9)
-private val CardBg      = Color.White
-private val BorderColor = Color(0xFFE0E0E0)
 private val TextDark    = Color(0xFF1A1A1A)
 private val TextGray    = Color(0xFF757575)
-private val RedColor    = Color(0xFFC62828)
+private val RedColor    = Color(0xBEC62828)
 private val RedBg       = Color(0xFFFFEBEE)
 private val OrangeColor = Color(0xFFE65100)
 private val OrangeBg    = Color(0xFFFFF3E0)
 private val BlueColor   = Color(0xFF1565C0)
 private val BlueBg      = Color(0xFFE3F2FD)
-private val TrackGray   = Color(0xFFE0E0E0)
 
 // ── Filter ─────────────────────────────────────────────────────────────────────
 private enum class Filter { ALL, CORRECT, INCORRECT, PARTIAL }
@@ -148,7 +147,7 @@ fun ResultScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F7F6))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Top bar
         ResultTopBar(onBack = onEvaluateAnother)
@@ -179,7 +178,7 @@ fun ResultScreen(
                 text       = "Question Analysis",
                 fontWeight = FontWeight.Bold,
                 fontSize   = 18.sp,
-                color      = TextDark,
+                color      = MaterialTheme.colorScheme.onSurface,
             )
 
             FilterRow(
@@ -195,7 +194,7 @@ fun ResultScreen(
                     modifier         = Modifier.fillMaxWidth().height(72.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No questions in this category.", color = TextGray, fontSize = 13.sp)
+                    Text("No questions in this category.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                 }
             } else {
                 shown.forEach { q -> QuestionCard(q) }
@@ -223,7 +222,7 @@ private fun ResultTopBar(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CardBg)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Box(
@@ -238,14 +237,14 @@ private fun ResultTopBar(onBack: () -> Unit) {
             Icon(
                 imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint               = Green
+                tint               = MaterialTheme.colorScheme.primary
             )
         }
         Text(
             text = "Evaluation Result",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = Green,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.align(Alignment.Center),
         )
     }
@@ -263,7 +262,7 @@ private fun ResultBottomBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CardBg)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -276,14 +275,14 @@ private fun ResultBottomBar(
         ) {
             if (isPdfGenerating) {
                 CircularProgressIndicator(
-                    color    = Green,
+                    color    = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp),
                     strokeWidth = 2.dp
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Saving...", fontSize = 12.sp, color = TextGray)
+                Text("Saving...", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                Text("Generate Report", fontSize = 12.sp, color = TextDark)
+                Text("Generate Report", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
             }
         }
 
@@ -291,7 +290,7 @@ private fun ResultBottomBar(
             onClick  = onEvaluateAnother,
             modifier = Modifier.weight(1f).height(48.dp),
             shape    = RoundedCornerShape(50),
-            colors   = ButtonDefaults.buttonColors(containerColor = Green)
+            colors   = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("Evaluate Another", color = Color.White, fontSize = 12.sp)
         }
@@ -312,20 +311,20 @@ private fun SummaryCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CardBg)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment     = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text("Evaluation Completed!", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Green)
-            Text("Here's the detailed analysis.", fontSize = 11.sp, color = TextGray)
+            Text("Evaluation Completed!", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
+            Text("Here's the detailed analysis.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Student Name", fontSize = 10.sp, color = TextGray)
-            Text(studentName.ifBlank { "—" }, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = TextDark)
+            Text("Student Name", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(studentName.ifBlank { "—" }, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(10.dp))
-            Text("Evaluated On", fontSize = 10.sp, color = TextGray)
-            Text(dateStr, fontSize = 12.sp, color = TextDark)
+            Text("Evaluated On", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(dateStr, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
         }
         Spacer(modifier = Modifier.width(12.dp))
         ScoreRing(percent = percent, obtained = obtained, total = total)
@@ -338,18 +337,20 @@ private fun SummaryCard(
 @Composable
 private fun ScoreRing(percent: Float, obtained: Int, total: Int) {
     val sweep = (percent / 100f) * 300f
+    val trackColor = MaterialTheme.colorScheme.outlineVariant
+    val progressColor = MaterialTheme.colorScheme.primary
     Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val stroke   = 11.dp.toPx()
             val diameter = size.minDimension - stroke
             val tl       = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
             val sz       = Size(diameter, diameter)
-            drawArc(color = TrackGray, startAngle = 120f, sweepAngle = 300f, useCenter = false, topLeft = tl, size = sz, style = Stroke(stroke, cap = StrokeCap.Round))
-            if (sweep > 0f) drawArc(color = Green, startAngle = 120f, sweepAngle = sweep, useCenter = false, topLeft = tl, size = sz, style = Stroke(stroke, cap = StrokeCap.Round))
+            drawArc(color = trackColor, startAngle = 120f, sweepAngle = 300f, useCenter = false, topLeft = tl, size = sz, style = Stroke(stroke, cap = StrokeCap.Round))
+            if (sweep > 0f) drawArc(color = progressColor, startAngle = 120f, sweepAngle = sweep, useCenter = false, topLeft = tl, size = sz, style = Stroke(stroke, cap = StrokeCap.Round))
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("${percent.toInt()}%", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Green)
-            Text("$obtained / $total", fontSize = 11.sp, color = TextGray, textAlign = TextAlign.Center)
+            Text("${percent.toInt()}%", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = progressColor)
+            Text("$obtained / $total", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
     }
 }
@@ -362,18 +363,18 @@ private fun StatsRow(correct: Int, incorrect: Int, partial: Int, total: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CardBg, RoundedCornerShape(16.dp))
-            .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment     = Alignment.CenterVertically
     ) {
         StatCell("✅", "Correct",   correct,   Color(0xFF2E7D32))
-        Box(modifier = Modifier.width(1.dp).height(36.dp).background(BorderColor))
+        Box(modifier = Modifier.width(1.dp).height(36.dp).background(MaterialTheme.colorScheme.outlineVariant))
         StatCell("❌", "Incorrect", incorrect, RedColor)
-        Box(modifier = Modifier.width(1.dp).height(36.dp).background(BorderColor))
+        Box(modifier = Modifier.width(1.dp).height(36.dp).background(MaterialTheme.colorScheme.outlineVariant))
         StatCell("⚠️", "Partial",   partial,   OrangeColor)
-        Box(modifier = Modifier.width(1.dp).height(36.dp).background(BorderColor))
+        Box(modifier = Modifier.width(1.dp).height(36.dp).background(MaterialTheme.colorScheme.outlineVariant))
         StatCell("ℹ️", "Total",     total,     BlueColor)
     }
 }
@@ -382,7 +383,7 @@ private fun StatsRow(correct: Int, incorrect: Int, partial: Int, total: Int) {
 private fun StatCell(emoji: String, label: String, count: Int, countColor: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(emoji, fontSize = 16.sp)
-        Text(label, fontSize = 10.sp, color = TextGray)
+        Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("$count", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = countColor)
     }
 }
@@ -395,13 +396,13 @@ private fun FeedbackCard(feedback: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(GreenLight, RoundedCornerShape(12.dp))
-            .border(1.dp, Color(0xFFA5D6A7), RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f), RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
             .padding(14.dp)
     ) {
-        Text("💬  Overall Feedback", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Green)
+        Text("💬  Overall Feedback", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
         Spacer(modifier = Modifier.height(6.dp))
-        Text(feedback, fontSize = 13.sp, color = TextDark, lineHeight = 19.sp)
+        Text(feedback, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface, lineHeight = 19.sp)
     }
 }
 
@@ -430,8 +431,8 @@ private fun FilterChip(label: String, active: Boolean, onClick: () -> Unit, modi
 
     Box(
         modifier = modifier
-            .background(if (active) Green else CardBg, RoundedCornerShape(50))
-            .border(1.dp, if (active) Green else BorderColor, RoundedCornerShape(50))
+            .background(if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface, RoundedCornerShape(50))
+            .border(1.dp, if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50))
             .clickable(
                 interactionSource = chipInteractionSource,
                 indication = null
@@ -444,7 +445,7 @@ private fun FilterChip(label: String, active: Boolean, onClick: () -> Unit, modi
         Text(
             text       = label,
             fontSize   = 11.sp,
-            color      = if (active) Color.White else TextGray,
+            color      = if (active) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
             textAlign  = TextAlign.Center,
             maxLines   = 1
@@ -461,7 +462,32 @@ private fun QuestionCard(q: Question) {
     val isIncorrect = q.marksObtained == 0
     val statusLabel = when { isCorrect -> "Correct"; isIncorrect -> "Incorrect"; else -> "Partial" }
     val statusColor = when { isCorrect -> Color(0xFF2E7D32); isIncorrect -> RedColor; else -> OrangeColor }
-    val statusBg    = when { isCorrect -> GreenLight; isIncorrect -> RedBg; else -> OrangeBg }
+    val statusBg    = when { isCorrect -> MaterialTheme.colorScheme.primary.copy(alpha = 0.10f); isIncorrect -> MaterialTheme.colorScheme.errorContainer; else -> MaterialTheme.colorScheme.secondaryContainer }
+    val isDark = isSystemInDarkTheme()
+
+    val successBackground =
+        if (isDark)
+            Color(0xFF1B3A24)
+        else
+            Color(0xFFE8F5E9)
+
+    val successText =
+        if (isDark)
+            Color(0xFFE8F5E9)
+        else
+            Color(0xFF1B5E20)
+
+    val errorBackground =
+        if (isDark)
+            Color(0xFF3A1B1B)
+        else
+            Color(0xFFFFEBEE)
+
+    val errorText =
+        if (isDark)
+            Color(0xFFFFEBEE)
+        else
+            Color(0xFFB71C1C)
 
     var expanded by remember { mutableStateOf(true) }
     val cardInteractionSource = rememberSafeInteractionSource()
@@ -469,8 +495,8 @@ private fun QuestionCard(q: Question) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CardBg, RoundedCornerShape(16.dp))
-            .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
     ) {
         Row(
             modifier = Modifier
@@ -487,16 +513,16 @@ private fun QuestionCard(q: Question) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 Box(
-                    modifier         = Modifier.size(36.dp).background(GreenLight, RoundedCornerShape(8.dp)),
+                    modifier         = Modifier.size(36.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Q${q.questionNumber}", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Green)
+                    Text("Q${q.questionNumber}", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("${q.maxMarks} Marks", fontSize = 11.sp, color = TextGray)
+                    Text("${q.maxMarks} Marks", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (q.suggestion.isNotBlank()) {
-                        Text(q.suggestion, fontSize = 12.sp, color = TextDark, maxLines = 2, lineHeight = 17.sp)
+                        Text(q.suggestion, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, lineHeight = 17.sp)
                     }
                 }
             }
@@ -515,24 +541,38 @@ private fun QuestionCard(q: Question) {
         }
 
         if (expanded) {
-            HorizontalDivider(color = BorderColor, thickness = 1.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
             Column(
                 modifier            = Modifier.fillMaxWidth().padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 if (q.correctPoints.isNotEmpty()) {
-                    DetailBox("✅", "What's Correct",        Color(0xFF2E7D32), GreenLight, q.correctPoints, Color(0xFF1B5E20))
+                    DetailBox(
+                        "✅",
+                        "What's Correct",
+                        successText,
+                        successBackground,
+                        q.correctPoints,
+                        successText
+                    )
                 }
                 if (q.mistakes.isNotEmpty()) {
                     DetailBox(
                         "❌",
-                        when { isCorrect -> "Why No Marks Deducted"; isIncorrect -> "What's Incorrect"; else -> "Why ${q.maxMarks - q.marksObtained} Mark(s) Deducted" },
-                        RedColor, RedBg, q.mistakes, Color(0xFF7F0000)
+                        when {
+                            isCorrect -> "Why No Marks Deducted"
+                            isIncorrect -> "What's Incorrect"
+                            else -> "Why ${q.maxMarks - q.marksObtained} Mark(s) Deducted"
+                        },
+                        errorText,
+                        errorBackground,
+                        q.mistakes,
+                        errorText
                     )
                 }
                 val reason = q.reasoning.trim()
                 if (reason.isNotBlank() && reason != "Attempted" && reason != "Not Attempted") {
-                    DetailBox("💡", "What You Should Include", BlueColor, BlueBg, listOf(reason), Color(0xFF0D3C61))
+                    DetailBox("💡", "What You Should Include", MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.secondaryContainer, listOf(reason), MaterialTheme.colorScheme.onSurface)
                 }
             }
         }

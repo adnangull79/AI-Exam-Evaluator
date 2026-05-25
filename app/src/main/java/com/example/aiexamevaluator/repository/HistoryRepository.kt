@@ -43,4 +43,10 @@ class HistoryRepository(
             dao.deleteEvaluation(entity)
         }
     }
+
+    suspend fun deleteAllHistory() {
+        withContext(Dispatchers.IO) {
+            dao.deleteAll()
+        }
+    }
 }

@@ -51,7 +51,7 @@ private val PrimaryGreen = Color(0xFF0B6E4F)
 private val LightGreen = Color(0xFFEAF6F0)
 private val DarkText = Color(0xFF1B1B1B)
 private val LightText = Color(0xFF7A7A7A)
-private val CardBg = Color.White
+private val CardBg = Color.Transparent
 private val BorderColor = Color(0xFFE0E0E0)
 
 @Composable
@@ -62,7 +62,7 @@ fun AboutScreen(
     onBackClick: () -> Unit,
 ) {
     Scaffold(
-        containerColor = Color(0xFFF5F7F6),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = { AboutTopBar(onBackClick = onBackClick) },
     ) { innerPadding ->
         Column(
@@ -88,7 +88,7 @@ private fun AboutTopBar(onBackClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CardBg)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -106,7 +106,7 @@ private fun AboutTopBar(onBackClick: () -> Unit) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = PrimaryGreen,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
 
@@ -114,7 +114,7 @@ private fun AboutTopBar(onBackClick: () -> Unit) {
             text = "About AIExamEvaluator",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = PrimaryGreen,
+            color = MaterialTheme.colorScheme.primary,
         )
 
         Spacer(modifier = Modifier.size(40.dp))
@@ -126,7 +126,7 @@ private fun AppHeroSection() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(
@@ -148,7 +148,7 @@ private fun AppHeroSection() {
                 text = "AIExamEvaluator",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = PrimaryGreen,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
             )
 
@@ -157,7 +157,7 @@ private fun AppHeroSection() {
             Text(
                 text = "AI Powered Examination Assessment System",
                 fontSize = 13.sp,
-                color = LightText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
         }
@@ -169,7 +169,7 @@ private fun AboutCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(
@@ -182,21 +182,21 @@ private fun AboutCard() {
 
             Text(
                 text = "AIExamEvaluator is a modern Android application developed to simplify and improve the examination evaluation process. The system allows teachers to evaluate objective and subjective answer sheets efficiently using artificial intelligence assisted analysis.",
-                color = DarkText,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
                 lineHeight = 21.sp,
             )
 
             Text(
                 text = "The application helps educators save time, improve consistency, generate detailed feedback, maintain evaluation history, and manage assessment records through a modern user friendly interface.",
-                color = DarkText,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
                 lineHeight = 21.sp,
             )
 
             Text(
                 text = "Key Features:",
-                color = PrimaryGreen,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
             )
@@ -221,7 +221,7 @@ private fun TeamCard() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = CardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+
     ) {
         Column(
             modifier = Modifier
@@ -244,7 +244,6 @@ private fun ContactCard() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = CardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(
             modifier = Modifier
@@ -267,7 +266,7 @@ private fun VersionCard() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = CardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+
     ) {
         Column(
             modifier = Modifier
@@ -280,12 +279,12 @@ private fun VersionCard() {
                 text = "Version 1.0.0",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = DarkText,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = "Build: Release Candidate",
                 fontSize = 13.sp,
-                color = LightText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -297,7 +296,7 @@ private fun SectionTitle(text: String) {
         text = text,
         fontSize = 16.sp,
         fontWeight = FontWeight.Bold,
-        color = PrimaryGreen,
+        color = MaterialTheme.colorScheme.primary,
     )
 }
 
@@ -307,10 +306,10 @@ private fun FeatureRow(text: String) {
         Box(
             modifier = Modifier
                 .size(10.dp)
-                .background(PrimaryGreen, CircleShape),
+                .background(MaterialTheme.colorScheme.primary, CircleShape),
         )
         Spacer(modifier = Modifier.width(10.dp))
-        Text(text = text, color = DarkText, fontSize = 14.sp)
+        Text(text = text, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
     }
 }
 
@@ -322,9 +321,9 @@ private fun TeamMemberRow(role: String, name: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = role, color = LightText, fontSize = 12.sp)
+            Text(text = role, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(text = name, color = DarkText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = name, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }
     HorizontalDivider(color = BorderColor.copy(alpha = 0.6f))
@@ -344,13 +343,13 @@ private fun ContactRow(icon: androidx.compose.ui.graphics.vector.ImageVector, va
                 .background(LightGreen),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, contentDescription = null, tint = PrimaryGreen)
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = label, color = LightText, fontSize = 12.sp)
+            Text(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(text = value, color = DarkText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(text = value, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
     }
 }

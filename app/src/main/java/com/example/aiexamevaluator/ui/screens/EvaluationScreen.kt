@@ -51,7 +51,7 @@ fun EvaluationScreen(
     onBackClick: () -> Unit = {},
     viewModel  : EvaluationViewModel,
 ) {
-    val primaryGreen = Color(0xFF1B5E3C)
+    val primaryGreen = MaterialTheme.colorScheme.primary
     val uiState      by viewModel.uiState.collectAsState()
     val toastContext  = LocalContext.current
     val focusManager  = LocalFocusManager.current
@@ -133,7 +133,7 @@ fun EvaluationScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F7F6))      // ← same bg as the form, fully opaque
+                .background(MaterialTheme.colorScheme.background)
                 .clickable(
                     interactionSource = loadingInteractionSource,
                     indication = null
@@ -167,7 +167,7 @@ fun EvaluationScreen(
                 Text(
                     text      = "This may take a few seconds",
                     style     = MaterialTheme.typography.bodyMedium,
-                    color     = Color.Gray,
+                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -178,7 +178,7 @@ fun EvaluationScreen(
     // ── Normal form UI (only shown when NOT loading) ──────────────────────────
     Scaffold(
         topBar         = { EvaluationTopBar(onBackClick) },
-        containerColor = Color(0xFFF5F7F6),
+        containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
 
         Column(
@@ -227,6 +227,7 @@ fun EvaluationScreen(
                 text       = "Student Information",
                 fontWeight = FontWeight.Bold,
                 fontSize   = 16.sp,
+                color      = MaterialTheme.colorScheme.onSurface,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -237,7 +238,7 @@ fun EvaluationScreen(
                 label         = { Text("Student Name") },
                 modifier      = Modifier.fillMaxWidth(),
                 singleLine    = true,
-                colors        = outlinedFieldColors(primaryGreen),
+                colors        = evaluationFieldColors(),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -248,7 +249,7 @@ fun EvaluationScreen(
                 label         = { Text("Roll Number") },
                 modifier      = Modifier.fillMaxWidth(),
                 singleLine    = true,
-                colors        = outlinedFieldColors(primaryGreen),
+                colors        = evaluationFieldColors(),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -259,7 +260,7 @@ fun EvaluationScreen(
                 label         = { Text("Total Marks") },
                 modifier      = Modifier.fillMaxWidth(),
                 singleLine    = true,
-                colors        = outlinedFieldColors(primaryGreen),
+                colors        = evaluationFieldColors(),
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -280,7 +281,7 @@ fun EvaluationScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 shape   = RoundedCornerShape(50),
-                colors  = ButtonDefaults.buttonColors(containerColor = primaryGreen),
+                colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             ) {
                 Text("Evaluate", color = Color.White, fontWeight = FontWeight.SemiBold)
             }
@@ -291,12 +292,20 @@ fun EvaluationScreen(
 }
 
 @Composable
-private fun outlinedFieldColors(green: Color) = OutlinedTextFieldDefaults.colors(
-    focusedTextColor     = green,
-    unfocusedTextColor   = green,
-    cursorColor          = green,
-    focusedBorderColor   = green,
-    unfocusedBorderColor = Color.Gray,
+private fun evaluationFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
 )
 
 @Composable
@@ -311,8 +320,8 @@ fun UploadSectionWithPreview(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White, RoundedCornerShape(16.dp))
-            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
             .padding(16.dp),
     ) {
         Row(
@@ -321,10 +330,10 @@ fun UploadSectionWithPreview(
             verticalAlignment     = Alignment.Top,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(title,    fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text(subtitle, fontSize   = 12.sp, color = Color.Gray)
+                Text(title,    fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(subtitle, fontSize   = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(text = "${images.size}/$max", fontSize = 12.sp, color = Color.Gray)
+            Text(text = "${images.size}/$max", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -334,13 +343,13 @@ fun UploadSectionWithPreview(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-                    .border(1.dp, Color(0xFFBDBDBD), RoundedCornerShape(12.dp)),
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("📂", fontSize = 24.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Tap 'Add Images' to upload", fontSize = 12.sp, color = Color.Gray)
+                    Text("Tap 'Add Images' to upload", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         } else {
@@ -351,8 +360,8 @@ fun UploadSectionWithPreview(
                             Box(
                                 modifier = Modifier
                                     .size(84.dp)
-                                    .background(Color(0xFFF0F0F0), RoundedCornerShape(8.dp))
-                                    .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp)),
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)),
                             ) {
                                 AsyncImage(
                                     model              = uri,
@@ -364,7 +373,7 @@ fun UploadSectionWithPreview(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                         .size(22.dp)
-                                        .background(Color(0xFFE53935), RoundedCornerShape(50))
+                                        .background(MaterialTheme.colorScheme.error, RoundedCornerShape(50))
                                             .clickable(
                                                 interactionSource = rememberSafeInteractionSource(),
                                                 indication = null
@@ -404,6 +413,7 @@ fun EvaluationTopBar(onBackClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         val backInteractionSource = rememberSafeInteractionSource()
@@ -418,14 +428,14 @@ fun EvaluationTopBar(onBackClick: () -> Unit) {
             Icon(
                 imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint               = Color(0xFF1B5E3C),
+                tint               = MaterialTheme.colorScheme.primary,
             )
         }
         Text(
             text       = "Evaluation",
             fontWeight = FontWeight.Bold,
             fontSize   = 18.sp,
-            color      = Color(0xFF1B5E3C),
+            color      = MaterialTheme.colorScheme.primary,
             modifier = Modifier.align(Alignment.Center),
         )
     }
@@ -440,7 +450,7 @@ fun EvaluationTabs(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFE0E0E0), RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50))
             .padding(4.dp),
     ) {
         TabItem(Modifier.weight(1f), "Objective (MCQ)", isMcqSelected,  primaryGreen) { onChange(true) }
@@ -470,7 +480,7 @@ fun TabItem(
     ) {
         Text(
             text       = text,
-            color      = if (selected) Color.White else Color(0xFF424242),
+            color      = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize   = 14.sp,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         )

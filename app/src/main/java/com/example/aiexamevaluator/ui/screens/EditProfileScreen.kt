@@ -33,6 +33,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -120,7 +122,7 @@ fun EditProfileScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF5F7F6),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = { EditProfileTopBar(onBackClick = onBackClick) },
     ) { innerPadding ->
         LazyColumn(
@@ -213,13 +215,14 @@ fun EditProfileScreen(
             onDismissRequest = { showEditNameDialog = false },
             title = { Text(text = "Edit Full Name") },
             text = {
-                OutlinedTextField(
-                    value = fullNameInput,
-                    onValueChange = { fullNameInput = it },
-                    label = { Text(text = "Full Name") },
-                    singleLine = true,
-                    enabled = !uiState.isUpdating,
-                )
+                    OutlinedTextField(
+                        value = fullNameInput,
+                        onValueChange = { fullNameInput = it },
+                        label = { Text(text = "Full Name") },
+                        singleLine = true,
+                        enabled = !uiState.isUpdating,
+                        colors = editProfileFieldColors(),
+                    )
             },
             confirmButton = {
                 TextButton(
@@ -253,6 +256,7 @@ fun EditProfileScreen(
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         enabled = !uiState.isUpdating,
+                        colors = editProfileFieldColors(),
                     )
                     OutlinedTextField(
                         value = newPassword,
@@ -261,6 +265,7 @@ fun EditProfileScreen(
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         enabled = !uiState.isUpdating,
+                        colors = editProfileFieldColors(),
                     )
                     OutlinedTextField(
                         value = confirmPassword,
@@ -269,6 +274,7 @@ fun EditProfileScreen(
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         enabled = !uiState.isUpdating,
+                        colors = editProfileFieldColors(),
                     )
                 }
             },
@@ -347,7 +353,7 @@ private fun EditProfileTopBar(onBackClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CardBg)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -365,13 +371,13 @@ private fun EditProfileTopBar(onBackClick: () -> Unit) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = PrimaryGreen,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
 
         Text(
                 text = "Edit Profile",
-                color = PrimaryGreen,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
         )
@@ -388,7 +394,7 @@ private fun ProfileHeader(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(
@@ -399,21 +405,21 @@ private fun ProfileHeader(
         ) {
             Text(
                 text = "Edit Profile",
-                color = PrimaryGreen,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
             )
 
             Text(
                 text = fullName,
-                color = DarkText,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
             )
 
             Text(
                 text = email,
-                color = LightText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp,
             )
         }
@@ -432,7 +438,7 @@ private fun PersonalInformationCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(
@@ -444,13 +450,13 @@ private fun PersonalInformationCard(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = title,
-                    color = PrimaryGreen,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = subtitle,
-                    color = LightText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp,
                 )
             }
@@ -461,7 +467,7 @@ private fun PersonalInformationCard(
                     onClick = if (item.label == "Full Name") onFullNameClick else null,
                 )
                 if (index != items.lastIndex) {
-                    HorizontalDivider(color = BorderColor)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }
@@ -495,13 +501,13 @@ private fun InfoRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.label,
-                color = LightText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = item.value,
-                color = DarkText,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
             )
@@ -510,7 +516,7 @@ private fun InfoRow(
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = LightText,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -529,7 +535,7 @@ private fun ActionCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Row(
@@ -552,7 +558,7 @@ private fun ActionCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = accentColor,
+                    tint = if (contentColor == DarkText) MaterialTheme.colorScheme.primary else accentColor,
                 )
             }
 
@@ -561,14 +567,14 @@ private fun ActionCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    color = contentColor,
+                    color = if (contentColor == DarkText) MaterialTheme.colorScheme.onSurface else contentColor,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    color = LightText,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp,
                 )
             }
@@ -576,7 +582,7 @@ private fun ActionCard(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = LightText,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -587,7 +593,7 @@ private fun WarningCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = DangerBg),
+        colors = CardDefaults.cardColors(containerColor = if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF3A1B1B) else DangerBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
@@ -601,7 +607,7 @@ private fun WarningCard() {
                 modifier = Modifier
                     .size(42.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surface),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -614,14 +620,14 @@ private fun WarningCard() {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Heads up!",
-                    color = DangerRed,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Deleting your account is permanent and cannot be undone. All your data will be permanently removed.",
-                    color = DarkText,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 13.sp,
                     lineHeight = 19.sp,
                 )
@@ -629,3 +635,20 @@ private fun WarningCard() {
         }
     }
 }
+
+@Composable
+private fun editProfileFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+)
