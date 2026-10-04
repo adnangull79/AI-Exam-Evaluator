@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -54,11 +55,21 @@ fun SignUpScreen(
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
+    // Tracks the email that was just registered, so the verification dialog
+    // can show it even after the field is cleared.
+    var verifiedEmailForDialog by rememberSaveable { mutableStateOf("") }
+    var showVerificationDialog by remember { mutableStateOf(false) }
+
     val uiState by authViewModel.uiState.collectAsState()
 
+    // signUp() succeeding now means "account created + verification email sent",
+    // NOT "logged in". So instead of navigating straight into the app
+    // (onCreateAccountClick), we show a dialog and let the user go to Login
+    // themselves once they've verified.
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
-            onCreateAccountClick()
+            verifiedEmailForDialog = email
+            showVerificationDialog = true
             authViewModel.resetSuccess()
         }
     }
@@ -72,23 +83,6 @@ fun SignUpScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-
-            // Decorative background
-//            Box(
-//                modifier = Modifier
-//                    .size(220.dp)
-//                    .offset(x = (-120).dp, y = (-40).dp)
-//                    .clip(CircleShape)
-//                    .background(lightGreen.copy(alpha = 0.35f))
-//            )
-
-//            Box(
-//                modifier = Modifier
-//                    .size(180.dp)
-//                    .offset(x = 260.dp, y = 620.dp)
-//                    .clip(CircleShape)
-//                    .background(lightGreen.copy(alpha = 0.25f))
-//            )
 
             Column(
                 modifier = Modifier
@@ -136,7 +130,7 @@ fun SignUpScreen(
                     painter = painterResource(id = R.drawable.exameval_logo),
                     contentDescription = null,
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(180.dp)
+                    modifier = Modifier.size(120.dp)
                 )
 
 
@@ -455,6 +449,47 @@ fun SignUpScreen(
                 Spacer(modifier = Modifier.height(30.dp))
             }
         }
+    }
+
+    if (showVerificationDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                // Force them through the button, not an outside tap, so they
+                // don't accidentally lose track of this screen.
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.MarkEmailRead,
+                    contentDescription = null,
+                    tint = primaryGreen
+                )
+            },
+            title = { Text("Verify Your Email") },
+            text = {
+                Text(
+                    text = "We've sent a verification link to $verifiedEmailForDialog. " +
+                            "Please check your inbox and verify your email before logging in. " +
+                            "If you donot found the email Please check the spam folder.",
+                    color = subText,
+                    fontSize = 14.sp
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showVerificationDialog = false
+                        // Clear the form now that the account exists.
+                        fullName = ""
+                        email = ""
+                        password = ""
+                        confirmPassword = ""
+                        onLoginClick()
+                    }
+                ) {
+                    Text("Go to Login", color = primaryGreen, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
     }
 }
 

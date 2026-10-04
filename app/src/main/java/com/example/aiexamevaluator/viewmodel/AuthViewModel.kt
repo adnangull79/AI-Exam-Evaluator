@@ -150,6 +150,54 @@ class AuthViewModel(
         }
     }
 
+    fun sendPasswordResetEmail(email: String) {
+        val trimmedEmail = email.trim()
+
+        if (trimmedEmail.isBlank()) {
+            _uiState.update { it.copy(resetError = "Please enter your email address.", resetEmailSent = false) }
+            return
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+            _uiState.update { it.copy(resetError = "Please enter a valid email address.", resetEmailSent = false) }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isResetLoading = true, resetError = null, resetEmailSent = false) }
+
+            try {
+                repository.sendPasswordResetEmail(trimmedEmail)
+                    .onSuccess {
+                        _uiState.update {
+                            it.copy(isResetLoading = false, resetEmailSent = true, resetError = null)
+                        }
+                    }
+                    .onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                isResetLoading = false,
+                                resetEmailSent = false,
+                                resetError = throwable.message ?: "Failed to send reset email. Please try again.",
+                            )
+                        }
+                    }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isResetLoading = false,
+                        resetEmailSent = false,
+                        resetError = e.message ?: "Unexpected error. Please try again.",
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearResetState() {
+        _uiState.update { it.copy(resetEmailSent = false, resetError = null, isResetLoading = false) }
+    }
+
     private fun checkLoginState() {
         if (repository.isUserLoggedIn()) {
             _uiState.update { it.copy(isLoggedIn = true) }
